@@ -30,7 +30,8 @@ Mark a phase done by changing `[ ]` to `[x]` and adding one line of notes under 
 - First Alembic migration, reviewed by hand
 - **Done when:** `make migrate` works on a clean DB and repository tests pass.
 
-## [ ] Phase 3 — Seed data
+## [x] Phase 3 — Seed data
+> Done: 5 planted patterns + explainer content gap; 12 accounts, 4,049 posts, 8,098 snapshots; `make seed` idempotent (identical fingerprint twice).
 - `seed/answer_key.py` with 4–6 planted patterns (format, story type, posting time,
   language, an Al Jazeera content gap)
 - `seed/captions.py` (Arabic + English templates by topic and style)

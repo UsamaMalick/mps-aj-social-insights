@@ -108,3 +108,14 @@ class TagSource(StrEnum):
 class RecommendationSource(StrEnum):
     LLM = "llm"
     TEMPLATE = "template"
+
+
+class PatternDimension(StrEnum):
+    """A post attribute that engagement patterns are grouped by."""
+
+    MEDIA_TYPE = "media_type"
+    STORY_TYPE = "story_type"
+    HOOK_STYLE = "hook_style"
+    TOPIC = "topic"
+    LANGUAGE = "language"
+    TIME_BLOCK = "time_block"

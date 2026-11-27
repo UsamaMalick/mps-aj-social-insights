@@ -1,12 +1,14 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import Select, case, func, select
+from sqlalchemy.dialects.postgresql import distinct_on, insert
+from sqlalchemy.orm import aliased
 
+from app.modules.analytics.metrics import engagement_score_sql
 from app.modules.posts.models import MetricSnapshot, Post
 from app.modules.posts.schemas import MetricSnapshotCreate, PostCreate, PostQuery
-from app.shared.enums import SnapshotAge
+from app.shared.enums import PostSort, SnapshotAge
 from app.shared.repository import BaseRepository
 
 
@@ -51,12 +53,49 @@ class PostRepository(BaseRepository[Post]):
         )
         return [(post, snapshot) for post, snapshot in rows.all()]
 
-    async def search(self, query: PostQuery) -> Sequence[Post]:
-        """Posts matching the query, newest first."""
-        rows = await self.session.scalars(
-            self._filtered(query).order_by(Post.posted_at.desc(), Post.id)
+    async def search_page(
+        self,
+        query: PostQuery,
+        *,
+        sort: PostSort,
+        followers_by_account: dict[UUID, int],
+        offset: int,
+        limit: int,
+    ) -> tuple[list[tuple[Post, MetricSnapshot | None]], int]:
+        """One page of matching posts with their latest snapshot, plus the total match count.
+
+        Filtering, sorting and pagination all run in the database. Follower counts come from
+        the accounts module (passed in) so this module never queries another module's tables.
+        """
+        filtered = self._filtered(query)
+        total = await self.session.scalar(select(func.count()).select_from(filtered.subquery()))
+
+        latest_rows = (
+            select(MetricSnapshot)
+            .ext(distinct_on(MetricSnapshot.post_id))
+            .order_by(MetricSnapshot.post_id, MetricSnapshot.hours_since_post.desc())
+            .subquery()
         )
-        return rows.all()
+        latest = aliased(MetricSnapshot, latest_rows)
+        stmt = filtered.add_columns(latest).outerjoin(latest, latest.post_id == Post.id)
+
+        match sort:
+            case PostSort.NEWEST:
+                stmt = stmt.order_by(Post.posted_at.desc(), Post.id)
+            case PostSort.OLDEST:
+                stmt = stmt.order_by(Post.posted_at.asc(), Post.id)
+            case PostSort.MOST_ENGAGED:
+                followers = case(followers_by_account, value=Post.account_id, else_=None)
+                score = engagement_score_sql(
+                    likes=latest.likes,
+                    comments=latest.comments,
+                    shares=latest.shares,
+                    followers_at_post=followers,
+                )
+                stmt = stmt.order_by(score.desc().nulls_last(), Post.posted_at.desc(), Post.id)
+
+        rows = await self.session.execute(stmt.offset(offset).limit(limit))
+        return [(post, snapshot) for post, snapshot in rows.all()], total or 0
 
     @staticmethod
     def _filtered(query: PostQuery) -> Select[Post]:

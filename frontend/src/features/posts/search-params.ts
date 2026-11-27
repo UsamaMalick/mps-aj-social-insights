@@ -78,3 +78,20 @@ export function postsHref(
   const query = search.toString();
   return query ? `/posts?${query}` : "/posts";
 }
+
+export const SEARCH_DEBOUNCE_MS = 350;
+
+/** The single "Account" dropdown covers both ownership and one specific account. */
+export function accountFilterValue(params: PostsSearchParams): string | undefined {
+  return params.account ?? params.ownership;
+}
+
+export function accountFilterChanges(
+  value: string | undefined,
+): Pick<PostsSearchParams, "account" | "ownership"> {
+  if (value === undefined) return { account: undefined, ownership: undefined };
+  if ((OWNERSHIP_VALUES as readonly string[]).includes(value)) {
+    return { account: undefined, ownership: value as (typeof OWNERSHIP_VALUES)[number] };
+  }
+  return { account: value, ownership: undefined };
+}

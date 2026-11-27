@@ -20,7 +20,10 @@ export function PostsPagination({ params, total }: PostsPaginationProps) {
       <p className="text-muted-foreground tabular-nums">
         {formatInteger(first)}–{formatInteger(last)} of {formatInteger(total)} posts
       </p>
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground tabular-nums">
+          Page {formatInteger(params.page)} of {formatInteger(pageCount)}
+        </span>
         {params.page > 1 ? (
           <Button asChild variant="outline" size="sm">
             <Link href={postsHref(params, { page: params.page - 1 })}>Previous</Link>

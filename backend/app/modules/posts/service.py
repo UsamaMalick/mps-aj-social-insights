@@ -13,7 +13,8 @@ from app.modules.posts.schemas import (
     PostQuery,
     PostRead,
 )
-from app.shared.enums import SnapshotAge
+from app.shared.enums import PostSort, SnapshotAge
+from app.shared.schemas import PaginationParams
 
 # Keeps each multi-row INSERT well under PostgreSQL's 32,767 bind-parameter limit.
 UPSERT_BATCH_SIZE = 1_000
@@ -41,9 +42,30 @@ class PostService:
     async def get_post(self, post_id: UUID) -> PostRead:
         return PostRead.model_validate(await self.posts.get_or_raise(post_id))
 
-    async def search(self, query: PostQuery) -> list[PostRead]:
-        """Posts matching the query, newest first."""
-        return [PostRead.model_validate(post) for post in await self.posts.search(query)]
+    async def search_page(
+        self,
+        query: PostQuery,
+        *,
+        sort: PostSort,
+        followers_by_account: dict[UUID, int],
+        pagination: PaginationParams,
+    ) -> tuple[list[tuple[PostRead, MetricSnapshotRead | None]], int]:
+        """One page of matching posts with their latest snapshot, and the total match count."""
+        rows, total = await self.posts.search_page(
+            query,
+            sort=sort,
+            followers_by_account=followers_by_account,
+            offset=pagination.offset,
+            limit=pagination.limit,
+        )
+        page = [
+            (
+                PostRead.model_validate(post),
+                MetricSnapshotRead.model_validate(snapshot) if snapshot is not None else None,
+            )
+            for post, snapshot in rows
+        ]
+        return page, total
 
     async def snapshots_by_post(
         self, post_ids: Sequence[UUID]

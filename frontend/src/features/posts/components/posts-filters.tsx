@@ -1,11 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   languageValues,
   mediaTypeValues,
@@ -16,24 +13,49 @@ import {
 import { formatAccountName, formatLabel } from "@/lib/format";
 
 import {
-  OWNERSHIP_VALUES,
+  accountFilterChanges,
+  accountFilterValue,
   type PostsSearchParams,
   postsHref,
-  SEARCH_MAX_LENGTH,
 } from "../search-params";
-import { type FilterOption, FilterSelect } from "./filter-select";
+import { type FilterOptionGroup, FilterSelect } from "./filter-select";
+import { SearchInput } from "./search-input";
 
 const LANGUAGE_LABELS: Record<string, string> = { ar: "Arabic", en: "English" };
-const OWNERSHIP_LABELS: Record<string, string> = { own: "Al Jazeera", competitors: "Competitors" };
+const SORT_LABELS: Record<string, string> = {
+  newest: "Newest first",
+  oldest: "Oldest first",
+  most_engaged: "Most engaging",
+};
 
-function options(values: readonly string[], labels?: Record<string, string>): FilterOption[] {
-  return values.map((value) => ({ value, label: labels?.[value] ?? formatLabel(value) }));
+function flat(values: readonly string[], labels?: Record<string, string>): FilterOptionGroup[] {
+  return [
+    { options: values.map((value) => ({ value, label: labels?.[value] ?? formatLabel(value) })) },
+  ];
 }
 
 interface AccountOption {
   id: string;
   display_name: string;
   platform: string;
+  is_own: boolean;
+}
+
+function accountGroups(accounts: AccountOption[]): FilterOptionGroup[] {
+  const toOption = (a: AccountOption) => ({
+    value: a.id,
+    label: formatAccountName(a.display_name, a.platform),
+  });
+  return [
+    {
+      options: [
+        { value: "own", label: "All Al Jazeera accounts" },
+        { value: "competitors", label: "All competitors" },
+      ],
+    },
+    { label: "Al Jazeera", options: accounts.filter((a) => a.is_own).map(toOption) },
+    { label: "Competitors", options: accounts.filter((a) => !a.is_own).map(toOption) },
+  ];
 }
 
 interface PostsFiltersProps {
@@ -43,100 +65,67 @@ interface PostsFiltersProps {
 
 export function PostsFilters({ params, accounts }: PostsFiltersProps) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  function apply(changes: Partial<Record<keyof PostsSearchParams, string | undefined>>) {
-    router.push(postsHref(params, { ...changes, page: 1 }));
+  function apply(changes: Partial<PostsSearchParams>) {
+    startTransition(() => {
+      // replace (not push): filter tweaks shouldn't fill the browser history.
+      router.replace(postsHref(params, { ...changes, page: 1 }), { scroll: false });
+    });
   }
 
   return (
-    <div className="space-y-3">
-      <form
-        role="search"
-        className="flex max-w-xl items-end gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const query = new FormData(event.currentTarget).get("q");
-          apply({ q: typeof query === "string" ? query.trim() : undefined });
-        }}
-      >
-        <div className="flex flex-1 flex-col gap-1.5">
-          <Label htmlFor="posts-search" className="text-muted-foreground text-xs">
-            Search captions
-          </Label>
-          <Input
-            id="posts-search"
-            name="q"
-            type="search"
-            dir="auto"
-            maxLength={SEARCH_MAX_LENGTH}
-            defaultValue={params.q ?? ""}
-            placeholder="e.g. ceasefire, عاجل"
-          />
-        </div>
-        <Button type="submit" variant="secondary">
-          <Search aria-hidden />
-          Search
-        </Button>
-      </form>
+    <div className="space-y-3" aria-busy={isPending}>
+      <SearchInput query={params.q ?? ""} isPending={isPending} onSearch={(q) => apply({ q })} />
 
       <div className="flex flex-wrap gap-3">
         <FilterSelect
-          id="filter-ownership"
-          label="Accounts"
-          value={params.ownership}
-          allLabel="All accounts"
-          options={options(OWNERSHIP_VALUES, OWNERSHIP_LABELS)}
-          onChange={(ownership) => apply({ ownership, account: undefined })}
-        />
-        <FilterSelect
           id="filter-account"
           label="Account"
-          value={params.account}
-          allLabel="Any account"
-          options={accounts.map((a) => ({
-            value: a.id,
-            label: formatAccountName(a.display_name, a.platform),
-          }))}
-          onChange={(account) => apply({ account })}
+          value={accountFilterValue(params)}
+          allLabel="All accounts"
+          groups={accountGroups(accounts)}
+          className="flex w-full flex-col gap-1.5 sm:w-64"
+          onChange={(value) => apply(accountFilterChanges(value))}
         />
         <FilterSelect
           id="filter-platform"
           label="Platform"
           value={params.platform}
           allLabel="All platforms"
-          options={options(platformValues)}
-          onChange={(platform) => apply({ platform })}
+          groups={flat(platformValues)}
+          onChange={(platform) => apply({ platform: platform as PostsSearchParams["platform"] })}
         />
         <FilterSelect
           id="filter-media"
           label="Format"
           value={params.media}
           allLabel="All formats"
-          options={options(mediaTypeValues)}
-          onChange={(media) => apply({ media })}
+          groups={flat(mediaTypeValues)}
+          onChange={(media) => apply({ media: media as PostsSearchParams["media"] })}
         />
         <FilterSelect
           id="filter-story"
           label="Story type"
           value={params.story}
           allLabel="All story types"
-          options={options(storyTypeValues)}
-          onChange={(story) => apply({ story })}
+          groups={flat(storyTypeValues)}
+          onChange={(story) => apply({ story: story as PostsSearchParams["story"] })}
         />
         <FilterSelect
           id="filter-language"
           label="Language"
           value={params.language}
           allLabel="Both languages"
-          options={options(languageValues, LANGUAGE_LABELS)}
-          onChange={(language) => apply({ language })}
+          groups={flat(languageValues, LANGUAGE_LABELS)}
+          onChange={(language) => apply({ language: language as PostsSearchParams["language"] })}
         />
         <FilterSelect
           id="filter-sort"
           label="Sort by"
           value={params.sort}
-          options={options(postSortValues)}
-          onChange={(sort) => apply({ sort })}
+          groups={flat(postSortValues, SORT_LABELS)}
+          onChange={(sort) => apply({ sort: sort ?? "newest" })}
         />
       </div>
     </div>

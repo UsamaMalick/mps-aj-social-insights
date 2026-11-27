@@ -8,7 +8,11 @@ Only public metrics are used, so scores are comparable across own and competitor
 """
 
 from collections.abc import Sequence
+from decimal import Decimal
 from statistics import median
+
+from sqlalchemy import Float, SQLColumnExpression, cast
+from sqlalchemy.sql import ColumnElement
 
 
 def interactions(*, likes: int, comments: int, shares: int) -> int:
@@ -19,6 +23,17 @@ def engagement_score(*, likes: int, comments: int, shares: int, followers_at_pos
     if followers_at_post <= 0:
         raise ValueError("followers_at_post must be positive")
     return interactions(likes=likes, comments=comments, shares=shares) / followers_at_post
+
+
+def engagement_score_sql(
+    *,
+    likes: SQLColumnExpression[int],
+    comments: SQLColumnExpression[int],
+    shares: SQLColumnExpression[int],
+    followers_at_post: SQLColumnExpression[int | None],
+) -> ColumnElement[float | Decimal]:
+    """The same formula as `engagement_score`, as a SQL expression (for sorting in the DB)."""
+    return cast(likes + comments + shares, Float) / followers_at_post
 
 
 def lift(score: float, account_median_score: float) -> float:

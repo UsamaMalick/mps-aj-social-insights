@@ -99,3 +99,37 @@ async def test_page_size_is_capped(db_client: AsyncClient) -> None:
     response = await db_client.get("/api/v1/posts", params={"limit": 1_000})
 
     assert response.status_code == 422
+
+
+async def test_pagination_runs_in_the_database_with_a_correct_total(
+    db_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    account = await create_account(db_session)
+    for day in range(1, 8):
+        await create_post(db_session, account, posted_at=datetime(2026, 1, day, tzinfo=UTC))
+
+    first = (await db_client.get("/api/v1/posts", params={"limit": 3})).json()
+    last = (await db_client.get("/api/v1/posts", params={"limit": 3, "offset": 6})).json()
+
+    assert (first["total"], len(first["items"])) == (7, 3)
+    assert first["items"][0]["posted_at"].startswith("2026-01-07")
+    assert (last["total"], len(last["items"])) == (7, 1)
+    assert last["items"][0]["posted_at"].startswith("2026-01-01")
+
+
+async def test_engagement_sort_uses_each_accounts_followers_and_puts_unmeasured_last(
+    db_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    big = await create_account(db_session, followers_count=100_000)
+    small = await create_account(db_session, followers_count=1_000)
+    many_likes = await create_post(db_session, big)
+    await create_snapshot(db_session, many_likes.id, likes=1_000, comments=0, shares=0)
+    few_likes = await create_post(db_session, small)
+    await create_snapshot(db_session, few_likes.id, likes=100, comments=0, shares=0)
+    unmeasured = await create_post(db_session, small)
+
+    response = await db_client.get("/api/v1/posts", params={"sort": "most_engaged"})
+
+    ids = [item["id"] for item in response.json()["items"]]
+    # 100 / 1,000 = 10% beats 1,000 / 100,000 = 1%; a post without snapshots comes last.
+    assert ids == [str(few_likes.id), str(many_likes.id), str(unmeasured.id)]

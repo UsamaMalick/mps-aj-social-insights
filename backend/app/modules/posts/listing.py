@@ -23,7 +23,6 @@ from app.modules.posts.schemas import (
 from app.modules.posts.service import PostService
 from app.modules.tagging.schemas import TagLabels
 from app.modules.tagging.service import TaggingService
-from app.shared.enums import PostSort
 from app.shared.schemas import Page, PaginationParams
 
 
@@ -36,32 +35,22 @@ class PostListingService:
     async def list_posts(
         self, filters: PostFilters, pagination: PaginationParams
     ) -> Page[PostListItem]:
-        """Filtered, sorted, paginated posts with their latest snapshot and tags.
-
-        The POC has a few thousand posts, so sorting by engagement happens in memory.
-        """
+        """Filtered, searched, sorted and paginated posts (all in the database), each with its
+        account, latest snapshot and tags."""
         accounts = {account.id: account for account in await self.accounts.list_all()}
-        query = await self._to_query(filters, accounts)
-        posts = await self.posts.search(query)
-        labels = await self.tagging.labels_by_post()
-
-        if filters.sort is PostSort.OLDEST:
-            posts.reverse()
-        if filters.sort is not PostSort.MOST_ENGAGED:
-            page = posts[pagination.offset : pagination.offset + pagination.limit]
-            snapshots = await self.posts.snapshots_by_post([p.id for p in page])
-            items = [_to_item(p, accounts, snapshots[p.id], labels) for p in page]
-        else:
-            snapshots = await self.posts.snapshots_by_post([p.id for p in posts])
-            ranked = sorted(
-                (_to_item(p, accounts, snapshots[p.id], labels) for p in posts),
-                key=lambda item: item.engagement_score or 0.0,
-                reverse=True,
-            )
-            items = ranked[pagination.offset : pagination.offset + pagination.limit]
-
+        rows, total = await self.posts.search_page(
+            await self._to_query(filters, accounts),
+            sort=filters.sort,
+            followers_by_account={a.id: a.followers_count for a in accounts.values()},
+            pagination=pagination,
+        )
+        labels = await self.tagging.labels_for_posts([post.id for post, _ in rows])
+        items = [
+            _to_item(post, accounts, [snapshot] if snapshot else [], labels)
+            for post, snapshot in rows
+        ]
         return Page[PostListItem](
-            items=items, total=len(posts), offset=pagination.offset, limit=pagination.limit
+            items=items, total=total, offset=pagination.offset, limit=pagination.limit
         )
 
     async def get_post(self, post_id: UUID) -> PostDetail:
@@ -69,7 +58,7 @@ class PostListingService:
         post = await self.posts.get_post(post_id)
         account = await self.accounts.get_account(post.account_id)
         snapshots = (await self.posts.snapshots_by_post([post.id]))[post.id]
-        labels = await self.tagging.labels_by_post()
+        labels = await self.tagging.labels_for_posts([post.id])
         item = _to_item(post, {account.id: account}, snapshots, labels)
         return PostDetail(**item.model_dump(), snapshots=snapshots)
 

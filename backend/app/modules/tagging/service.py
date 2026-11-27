@@ -55,6 +55,13 @@ class TaggingService:
             tag.post_id: TagLabels.model_validate(tag) for tag in await self.repository.list_all()
         }
 
+    async def labels_for_posts(self, post_ids: Sequence[UUID]) -> dict[UUID, TagLabels]:
+        """Labels of the given posts only (untagged posts are absent)."""
+        if not post_ids:
+            return {}
+        tags = await self.repository.list_for_posts(post_ids)
+        return {tag.post_id: TagLabels.model_validate(tag) for tag in tags}
+
     async def post_ids_with_story_type(self, story_type: StoryType) -> list[UUID]:
         return [
             tag.post_id for tag in await self.repository.list_all() if tag.story_type == story_type

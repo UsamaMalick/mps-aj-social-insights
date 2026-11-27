@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { parsePostsSearchParams, postsHref, toPostsQuery } from "./search-params";
+import {
+  accountFilterChanges,
+  accountFilterValue,
+  parsePostsSearchParams,
+  postsHref,
+  toPostsQuery,
+} from "./search-params";
 
 describe("posts search params", () => {
   it("parses valid params and applies defaults", () => {
@@ -35,5 +41,28 @@ describe("posts search params", () => {
     expect(postsHref(params, { media: undefined, sort: "most_engaged" })).toBe(
       "/posts?sort=most_engaged&page=2",
     );
+  });
+});
+
+describe("account filter", () => {
+  it("shows a specific account before ownership", () => {
+    const params = parsePostsSearchParams({ ownership: "own" });
+    expect(accountFilterValue(params)).toBe("own");
+  });
+
+  it("selecting a group clears the specific account", () => {
+    expect(accountFilterChanges("competitors")).toEqual({
+      account: undefined,
+      ownership: "competitors",
+    });
+  });
+
+  it("selecting an account clears the group", () => {
+    const id = "6f1c2b9e-1d2a-4c3b-9e8f-0a1b2c3d4e5f";
+    expect(accountFilterChanges(id)).toEqual({ account: id, ownership: undefined });
+  });
+
+  it("selecting all clears both", () => {
+    expect(accountFilterChanges(undefined)).toEqual({ account: undefined, ownership: undefined });
   });
 });

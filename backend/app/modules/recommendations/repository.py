@@ -1,9 +1,10 @@
 from collections.abc import Sequence
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from app.modules.recommendations.models import Recommendation
 from app.modules.recommendations.schemas import RecommendationCreate, RecommendationFilters
+from app.shared.enums import RecommendationStatus
 from app.shared.repository import BaseRepository
 
 
@@ -28,3 +29,6 @@ class RecommendationRepository(BaseRepository[Recommendation]):
             .limit(limit)
         )
         return rows.all(), total
+
+    async def delete_with_status(self, status: RecommendationStatus) -> None:
+        await self.session.execute(delete(Recommendation).where(Recommendation.status == status))

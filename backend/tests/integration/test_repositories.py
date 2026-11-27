@@ -15,6 +15,7 @@ from app.modules.recommendations.schemas import (
 )
 from app.modules.tagging.repository import PostTagRepository
 from app.shared.enums import (
+    PatternDimension,
     RecommendationCategory,
     RecommendationSource,
     RecommendationStatus,
@@ -112,6 +113,7 @@ async def test_recommendation_is_stored_with_evidence_and_new_status(
     repo = RecommendationRepository(db_session)
     evidence = Evidence(
         metric="engagement_score",
+        dimension=PatternDimension.MEDIA_TYPE,
         segment="reel",
         baseline="all posts",
         segment_value=0.02,

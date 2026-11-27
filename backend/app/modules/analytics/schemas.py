@@ -78,6 +78,7 @@ class SegmentPattern(BaseSchema):
     median_lift: float
     lift_vs_rest: float | None
     rest_post_count: int
+    rest_median_engagement_score: float | None
     accounts_compared: int
     is_reliable: bool
 

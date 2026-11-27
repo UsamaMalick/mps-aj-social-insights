@@ -3,7 +3,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 
-from app.api.deps import PaginationDep, SessionDep
+from app.api.deps import PaginationDep, SessionDep, SettingsDep
+from app.integrations.llm.factory import get_llm_client
 from app.modules.recommendations.schemas import (
     RecommendationFilters,
     RecommendationRead,
@@ -29,6 +30,18 @@ async def list_recommendations(
     filters: Annotated[RecommendationFilters, Query()],
 ) -> Page[RecommendationRead]:
     return await service.list_recommendations(filters, pagination)
+
+
+@router.post(
+    "/generate",
+    response_model=list[RecommendationRead],
+    status_code=201,
+    summary="Generate recommendations from the latest analytics",
+)
+async def generate_recommendations(
+    service: RecommendationServiceDep, settings: SettingsDep
+) -> list[RecommendationRead]:
+    return await service.generate(get_llm_client(settings))
 
 
 @router.get("/{recommendation_id}", response_model=RecommendationRead, summary="One recommendation")

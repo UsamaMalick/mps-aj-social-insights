@@ -46,6 +46,7 @@ class SegmentStat:
     median_lift: float
     lift_vs_rest: float | None
     rest_post_count: int
+    rest_median_engagement_score: float | None
     accounts_compared: int
     is_reliable: bool
 
@@ -176,6 +177,12 @@ def segment_stats(posts: Sequence[ScoredPost], dimension: PatternDimension) -> l
     stats = []
     for segment, group in groups.items():
         lift_vs_rest, accounts = _within_account_lift(posts, dimension, segment)
+        rest_scores = [
+            p.engagement_score
+            for other, members in groups.items()
+            if other != segment
+            for p in members
+        ]
         stats.append(
             SegmentStat(
                 dimension=dimension,
@@ -186,6 +193,7 @@ def segment_stats(posts: Sequence[ScoredPost], dimension: PatternDimension) -> l
                 median_lift=float(median(p.lift for p in group)),
                 lift_vs_rest=lift_vs_rest,
                 rest_post_count=known - len(group),
+                rest_median_engagement_score=float(median(rest_scores)) if rest_scores else None,
                 accounts_compared=accounts,
                 is_reliable=len(group) >= MIN_RELIABLE_SAMPLE and lift_vs_rest is not None,
             )

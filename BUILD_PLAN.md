@@ -72,7 +72,8 @@ Mark a phase done by changing `[ ]` to `[x]` and adding one line of notes under 
 - Loading, empty and error states on every page
 - **Done when:** every page works against seeded data and `make check` passes.
 
-## [ ] Phase 8 — Recommendations
+## [x] Phase 8 — Recommendations
+> Done: evidence from analytics (topic excluded), LLM writes wording only, per-item template fallback; generate replaces `new`, keeps reviewed; Server Actions for generate/accept/dismiss; fixed portal image file ownership.
 - Service builds evidence from analytics, asks the LLM for suggestions
   (format/style/hook/timing/language, never which news to cover), stores them with evidence
 - Fallback to template-based suggestions when no API key is set

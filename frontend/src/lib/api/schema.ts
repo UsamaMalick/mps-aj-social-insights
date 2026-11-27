@@ -208,6 +208,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recommendations/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate recommendations from the latest analytics */
+        post: operations["generate_recommendations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/recommendations/{recommendation_id}": {
         parameters: {
             query?: never;
@@ -336,11 +353,12 @@ export interface components {
         };
         /**
          * Evidence
-         * @description The numbers behind a recommendation.
+         * @description The numbers behind a recommendation (always computed by analytics, never by the LLM).
          */
         Evidence: {
             /** Metric */
             metric: string;
+            dimension: components["schemas"]["PatternDimension"];
             /** Segment */
             segment: string;
             /** Baseline */
@@ -357,6 +375,10 @@ export interface components {
             baseline_sample_size: number;
             /** Snapshot Hours */
             snapshot_hours: number;
+            /** Own Share */
+            own_share?: number | null;
+            /** Competitor Share */
+            competitor_share?: number | null;
             /** Notes */
             notes?: string | null;
         };
@@ -613,6 +635,8 @@ export interface components {
             lift_vs_rest: number | null;
             /** Rest Post Count */
             rest_post_count: number;
+            /** Rest Median Engagement Score */
+            rest_median_engagement_score: number | null;
             /** Accounts Compared */
             accounts_compared: number;
             /** Is Reliable */
@@ -1275,6 +1299,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_RecommendationRead_"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    generate_recommendations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendationRead"][];
                 };
             };
             /** @description Not Found */

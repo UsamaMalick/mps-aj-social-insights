@@ -7,6 +7,14 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   prettier,
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "src/lib/api/schema.ts"]),
 ]);
 

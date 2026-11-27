@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.recommendations.repository import RecommendationRepository
 from app.modules.recommendations.schemas import Evidence, RecommendationCreate
-from app.shared.enums import RecommendationCategory, RecommendationSource
+from app.shared.enums import PatternDimension, RecommendationCategory, RecommendationSource
 from tests.factories import create_account
 
 
@@ -30,6 +30,7 @@ async def test_recommendation_status_can_be_updated(
             category=RecommendationCategory.FORMAT,
             evidence=Evidence(
                 metric="engagement_score",
+                dimension=PatternDimension.MEDIA_TYPE,
                 segment="reel",
                 baseline="other formats",
                 segment_value=0.02,
@@ -52,3 +53,10 @@ async def test_recommendation_status_can_be_updated(
 
     assert response.json()["status"] == "accepted"
     assert listed.json()["total"] == 1
+
+
+async def test_generate_with_no_data_returns_no_recommendations(db_client: AsyncClient) -> None:
+    response = await db_client.post("/api/v1/recommendations/generate")
+
+    assert response.status_code == 201
+    assert response.json() == []

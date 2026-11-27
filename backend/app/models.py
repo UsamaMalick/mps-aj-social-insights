@@ -2,7 +2,12 @@
 
 import importlib
 
-MODEL_MODULES: tuple[str, ...] = ()
+MODEL_MODULES: tuple[str, ...] = (
+    "app.modules.accounts.models",
+    "app.modules.posts.models",
+    "app.modules.tagging.models",
+    "app.modules.recommendations.models",
+)
 
 
 def load_all_models() -> None:

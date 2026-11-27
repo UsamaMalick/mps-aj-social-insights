@@ -23,7 +23,8 @@ Mark a phase done by changing `[ ]` to `[x]` and adding one line of notes under 
   sidebar, header and `SampleDataBanner`, empty pages for every route, `Dockerfile`
 - **Done when:** `make check` passes and `make up` starts all services.
 
-## [ ] Phase 2 — Database
+## [x] Phase 2 — Database
+> Done: 5 tables, enums as strings, upsert-by-natural-key repos; recommendations use `category` (format/style/hook/timing/language) for the plan's "format" column.
 - Models + schemas + repositories for `accounts`, `posts`, `metric_snapshots`, `post_tags`,
   `recommendations` (see data model in backend/CLAUDE.md)
 - First Alembic migration, reviewed by hand

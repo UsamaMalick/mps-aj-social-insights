@@ -10,6 +10,7 @@ import {
   postSortValues,
   storyTypeValues,
 } from "@/lib/api/schema";
+import type { AccountGroup } from "@/features/accounts/types";
 import { formatAccountName, formatLabel } from "@/lib/format";
 
 import {
@@ -34,36 +35,31 @@ function flat(values: readonly string[], labels?: Record<string, string>): Filte
   ];
 }
 
-interface AccountOption {
-  id: string;
-  display_name: string;
-  platform: string;
-  is_own: boolean;
-}
+const GROUP_LABELS: Record<AccountGroup["key"], { heading: string; all: string }> = {
+  own: { heading: "Al Jazeera", all: "All Al Jazeera accounts" },
+  competitors: { heading: "Competitors", all: "All competitors" },
+};
 
-function accountGroups(accounts: AccountOption[]): FilterOptionGroup[] {
-  const toOption = (a: AccountOption) => ({
-    value: a.id,
-    label: formatAccountName(a.display_name, a.platform),
-  });
+/** Turns the backend's account groups into menu sections; no filtering or sorting here. */
+function accountMenu(groups: AccountGroup[]): FilterOptionGroup[] {
   return [
-    {
-      options: [
-        { value: "own", label: "All Al Jazeera accounts" },
-        { value: "competitors", label: "All competitors" },
-      ],
-    },
-    { label: "Al Jazeera", options: accounts.filter((a) => a.is_own).map(toOption) },
-    { label: "Competitors", options: accounts.filter((a) => !a.is_own).map(toOption) },
+    { options: groups.map((g) => ({ value: g.key, label: GROUP_LABELS[g.key].all })) },
+    ...groups.map((g) => ({
+      label: GROUP_LABELS[g.key].heading,
+      options: g.accounts.map((a) => ({
+        value: a.id,
+        label: formatAccountName(a.display_name, a.platform),
+      })),
+    })),
   ];
 }
 
 interface PostsFiltersProps {
   params: PostsSearchParams;
-  accounts: AccountOption[];
+  accountGroups: AccountGroup[];
 }
 
-export function PostsFilters({ params, accounts }: PostsFiltersProps) {
+export function PostsFilters({ params, accountGroups }: PostsFiltersProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -84,7 +80,7 @@ export function PostsFilters({ params, accounts }: PostsFiltersProps) {
           label="Account"
           value={accountFilterValue(params)}
           allLabel="All accounts"
-          groups={accountGroups(accounts)}
+          groups={accountMenu(accountGroups)}
           className="flex w-full flex-col gap-1.5 sm:w-64"
           onChange={(value) => apply(accountFilterChanges(value))}
         />

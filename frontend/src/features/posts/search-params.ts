@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  accountGroupKeyValues,
   languageValues,
   mediaTypeValues,
   platformValues,
@@ -10,7 +11,7 @@ import {
 
 export const POSTS_PAGE_SIZE = 25;
 export const SEARCH_MAX_LENGTH = 100;
-export const OWNERSHIP_VALUES = ["own", "competitors"] as const;
+export const OWNERSHIP_VALUES = accountGroupKeyValues;
 const DEFAULT_SORT = "newest";
 
 function optionalEnum<T extends string>(values: readonly T[]) {
@@ -90,8 +91,7 @@ export function accountFilterChanges(
   value: string | undefined,
 ): Pick<PostsSearchParams, "account" | "ownership"> {
   if (value === undefined) return { account: undefined, ownership: undefined };
-  if ((OWNERSHIP_VALUES as readonly string[]).includes(value)) {
-    return { account: undefined, ownership: value as (typeof OWNERSHIP_VALUES)[number] };
-  }
+  const ownership = OWNERSHIP_VALUES.find((group) => group === value);
+  if (ownership !== undefined) return { account: undefined, ownership };
   return { account: value, ownership: undefined };
 }

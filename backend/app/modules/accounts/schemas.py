@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import Field
 
-from app.shared.enums import Platform
+from app.shared.enums import AccountGroupKey, Platform
 from app.shared.schemas import BaseSchema
 
 
@@ -21,3 +21,8 @@ class AccountRead(AccountCreate):
 class AccountFilters(BaseSchema):
     platform: Platform | None = None
     is_own: bool | None = None
+
+
+class AccountGroup(BaseSchema):
+    key: AccountGroupKey
+    accounts: list[AccountRead]

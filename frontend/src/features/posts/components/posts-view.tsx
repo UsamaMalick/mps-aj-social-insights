@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { EmptyState } from "@/components/data/empty-state";
 import { Button } from "@/components/ui/button";
-import { listAccounts } from "@/features/accounts/api";
+import { listAccountGroups } from "@/features/accounts/api";
 
 import { listPosts } from "../api";
 import { parsePostsSearchParams, type RawSearchParams } from "../search-params";
@@ -16,11 +16,11 @@ interface PostsViewProps {
 
 export async function PostsView({ searchParams }: PostsViewProps) {
   const params = parsePostsSearchParams(await searchParams);
-  const [page, accounts] = await Promise.all([listPosts(params), listAccounts()]);
+  const [page, accountGroups] = await Promise.all([listPosts(params), listAccountGroups()]);
 
   return (
     <>
-      <PostsFilters params={params} accounts={accounts} />
+      <PostsFilters params={params} accountGroups={accountGroups} />
       {page.items.length === 0 ? (
         <EmptyState
           title="No posts match these filters"

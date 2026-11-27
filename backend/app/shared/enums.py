@@ -19,6 +19,13 @@ class LLMProvider(StrEnum):
     AZURE_OPENAI = "azure_openai"
 
 
+class AccountGroupKey(StrEnum):
+    """Own accounts vs competitors; also the `ownership` filter values in the portal."""
+
+    OWN = "own"
+    COMPETITORS = "competitors"
+
+
 class Platform(StrEnum):
     INSTAGRAM = "instagram"
     FACEBOOK = "facebook"

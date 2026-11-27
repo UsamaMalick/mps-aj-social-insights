@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import PaginationDep, SessionDep
-from app.modules.accounts.schemas import AccountFilters, AccountRead
+from app.modules.accounts.schemas import AccountFilters, AccountGroup, AccountRead
 from app.modules.accounts.service import AccountService
 from app.shared.schemas import Page
 
@@ -27,6 +27,16 @@ async def list_accounts(
     return await service.list_accounts(filters, pagination)
 
 
+@router.get(
+    "/groups",
+    response_model=list[AccountGroup],
+    summary="Accounts grouped into own and competitors (for filter menus)",
+)
+async def list_account_groups(service: AccountServiceDep) -> list[AccountGroup]:
+    return await service.grouped_accounts()
+
+
+# Registered after /groups so that "groups" is never parsed as an account id.
 @router.get("/{account_id}", response_model=AccountRead, summary="One account")
 async def get_account(account_id: UUID, service: AccountServiceDep) -> AccountRead:
     return await service.get_account(account_id)

@@ -60,3 +60,18 @@ async def test_generate_with_no_data_returns_no_recommendations(db_client: Async
 
     assert response.status_code == 201
     assert response.json() == []
+
+
+async def test_account_groups_are_built_on_the_server(
+    db_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    await create_account(db_session, display_name="Rival", is_own=False)
+    await create_account(db_session, display_name="Al Jazeera", is_own=True)
+
+    response = await db_client.get("/api/v1/accounts/groups")
+
+    assert response.status_code == 200
+    groups = response.json()
+    assert [g["key"] for g in groups] == ["own", "competitors"]
+    assert [a["display_name"] for a in groups[0]["accounts"]] == ["Al Jazeera"]
+    assert [a["display_name"] for a in groups[1]["accounts"]] == ["Rival"]

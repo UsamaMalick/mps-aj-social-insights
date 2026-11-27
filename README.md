@@ -17,13 +17,31 @@ cp .env.example .env   # optional: the defaults work as they are
 make up                # postgres :5440, API :8000, portal :3000
 make migrate           # create the tables
 make seed              # load 90 days of sample data (≈4,000 posts)
-make tag               # label posts (AI with ANTHROPIC_API_KEY, rule-based without)
+make tag               # label posts (AI if an LLM provider is set, rule-based without)
 ```
 
 Then open <http://localhost:3000>. API docs are at <http://localhost:8000/docs>.
 
-On the **Recommendations** page, click *Generate recommendations* to turn the current
-patterns into suggestions, then accept or dismiss each one.
+## What's in the app
+
+| Page | What it shows |
+|---|---|
+| **Briefing** | A one-sentence summary written from the data (who is ahead, what works best), headline figures, all accounts ranked by engagement, "what's working" by format, story type, opening, timing and language, the content gap, and standout posts. |
+| **Posts** | Every post with live search (debounced), filters for account, platform, format, story type and language, sorting and numbered pages. Click a row to open a side panel with the full caption, 24h vs 72h metrics and labels. Its URL (`?post=…`) can be shared. |
+| **Competitors** | A leaderboard of all accounts by median engagement, per platform, using **public metrics only**. |
+| **Recommendations** | Evidence-backed suggestions on *how* to tell stories. Click *Generate recommendations*, then accept or dismiss each one (with Undo). |
+
+Filtering, search, sorting, ranking and pagination all run on the backend; the portal only
+displays results. Light and dark themes follow the system setting, with a toggle in the
+header.
+
+**Design.** An editorial "Newsroom Paper" system: cream paper and ink do almost all the
+work, and burnt orange is reserved for the single primary action, the active-section
+marker and focus rings. Instrument Serif for headlines and figures, Schibsted Grotesk for
+the interface, IBM Plex Sans Arabic for Arabic. Arabic captions render right-to-left. The
+rules are in `frontend/CLAUDE.md`, and pages are checked with the
+[impeccable](https://github.com/pbakaus/impeccable) detector
+(`npx impeccable detect http://localhost:3000/posts`).
 
 ### AI features (optional)
 
@@ -80,7 +98,7 @@ container, which `make test` starts.
 Next.js portal (server-rendered)  ──REST /api/v1 (typed from OpenAPI)──►  FastAPI  ──►  PostgreSQL
                                                                          │
                                             ingestion ── DataSource ─────┤  SeedDataSource now, MetaDataSource later
-                                     tagging, recommendations ── LLMClient ─┘  Anthropic
+                                     tagging, recommendations ── LLMClient ─┘  Anthropic ⇄ Azure OpenAI (fallback)
 ```
 
 - **Modular monolith.** One FastAPI app split into feature modules (`accounts`, `posts`,
@@ -100,6 +118,9 @@ Next.js portal (server-rendered)  ──REST /api/v1 (typed from OpenAPI)──�
   3%). `backend/tests/integration/test_answer_key.py` checks that analytics finds every one.
 - **The browser never calls the API.** Server Components and Server Actions do, so the API
   needs no CORS and can stay private.
+- **The backend does the work.** Filtering, search, sorting (including by engagement, using
+  the same formula in SQL), ranking and pagination run in the database and services; the
+  portal never filters or sorts data itself.
 
 ## Switching to real data later
 
@@ -111,8 +132,8 @@ Next.js portal (server-rendered)  ──REST /api/v1 (typed from OpenAPI)──�
    page insights). Competitor data from public endpoints has public counts only, and
    ingestion rejects own-only metrics for competitors.
 3. Set `DATA_SOURCE=meta`. The sample-data banner disappears automatically.
-4. Set `ANTHROPIC_API_KEY`, because the rule-based tagging fallback only knows the seed
-   posts.
+4. Configure an LLM provider (Anthropic and/or Azure OpenAI), because the rule-based
+   tagging fallback only knows the seed posts.
 5. Consider storing follower counts over time. Engagement score currently uses the
    account's current follower count, which is fine for 90 days of sample data but drifts
    over longer periods.
@@ -123,7 +144,7 @@ Nothing outside the ingestion module needs to change.
 
 ```
 backend/    FastAPI app, Alembic migrations, seed generator, tests   (see backend/CLAUDE.md)
-frontend/   Next.js 16 portal                                        (see frontend/CLAUDE.md)
+frontend/   Next.js 16 portal, design system and UI rules            (see frontend/CLAUDE.md)
 docs/       architecture decisions
 CLAUDE.md   project rules, commands and conventions
 BUILD_PLAN.md  how the POC was built, phase by phase

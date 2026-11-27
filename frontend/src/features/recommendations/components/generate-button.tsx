@@ -14,15 +14,15 @@ export function GenerateButton() {
 
   return (
     <form action={formAction} className="flex flex-col items-end gap-1">
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" variant="primary" size="lg" disabled={isPending}>
         <RefreshCw className={isPending ? "animate-spin" : undefined} aria-hidden />
         {isPending ? "Generating…" : "Generate recommendations"}
       </Button>
-      <p role="status" aria-live="polite" className="text-xs">
+      <p role="status" aria-live="polite" className="min-h-4 text-xs">
         {state.error ? (
           <span className="text-destructive">{state.error}</span>
         ) : state.generated !== null ? (
-          <span className="text-muted-foreground">
+          <span className="text-ink-2">
             Generated {state.generated} recommendations from the latest data.
           </span>
         ) : null}

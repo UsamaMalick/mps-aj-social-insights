@@ -24,6 +24,10 @@ export async function getPatterns(dimension: PatternDimension) {
   return unwrap(api.GET("/api/v1/analytics/patterns", { params: { query: { dimension } } }));
 }
 
+export async function getHighlights() {
+  return unwrap(api.GET("/api/v1/analytics/highlights"));
+}
+
 export async function getContentGaps() {
   return unwrap(api.GET("/api/v1/analytics/gaps"));
 }

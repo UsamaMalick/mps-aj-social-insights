@@ -2,7 +2,7 @@ import { EmptyState } from "@/components/data/empty-state";
 
 import { listRecommendations } from "../api";
 import { parseStatus } from "../search-params";
-import { RecommendationCard } from "./recommendation-card";
+import { ReviewList } from "./review-list";
 import { StatusTabs } from "./status-tabs";
 
 interface RecommendationsViewProps {
@@ -14,7 +14,7 @@ export async function RecommendationsView({ searchParams }: RecommendationsViewP
   const recommendations = await listRecommendations(status);
 
   return (
-    <>
+    <div className="space-y-8">
       <StatusTabs active={status} />
       {recommendations.length === 0 ? (
         <EmptyState
@@ -26,12 +26,8 @@ export async function RecommendationsView({ searchParams }: RecommendationsViewP
           }
         />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {recommendations.map((recommendation) => (
-            <RecommendationCard key={recommendation.id} recommendation={recommendation} />
-          ))}
-        </div>
+        <ReviewList recommendations={recommendations} removeOnReview={status === "new"} />
       )}
-    </>
+    </div>
   );
 }

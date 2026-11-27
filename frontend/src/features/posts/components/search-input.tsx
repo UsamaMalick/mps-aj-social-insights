@@ -42,13 +42,13 @@ export function SearchInput({ query, isPending, onSearch }: SearchInputProps) {
   }, [value, query, onSearch]);
 
   return (
-    <div role="search" className="flex w-full max-w-xl flex-col gap-1.5">
-      <Label htmlFor="posts-search" className="text-muted-foreground text-xs">
+    <div role="search" className="w-full max-w-md">
+      <Label htmlFor="posts-search" className="sr-only">
         Search captions
       </Label>
       <div className="relative">
         <Search
-          className="text-muted-foreground pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2"
+          className="text-ink-2 pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2"
           aria-hidden
         />
         <Input
@@ -59,17 +59,17 @@ export function SearchInput({ query, isPending, onSearch }: SearchInputProps) {
           maxLength={SEARCH_MAX_LENGTH}
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="Type to search, e.g. ceasefire, عاجل"
-          className="ps-8 pe-9 [&::-webkit-search-cancel-button]:hidden"
+          placeholder="Search captions, e.g. ceasefire or عاجل"
+          className="border-input placeholder:text-ink-2 h-9 rounded-md bg-transparent ps-8 pe-9 shadow-none [&::-webkit-search-cancel-button]:hidden"
         />
         <div className="absolute end-1.5 top-1/2 flex -translate-y-1/2 items-center">
           {isPending ? (
-            <Loader2 className="text-muted-foreground size-4 animate-spin" aria-label="Searching" />
+            <Loader2 className="text-ink-2 size-4 animate-spin" aria-label="Searching" />
           ) : value ? (
             <button
               type="button"
               onClick={() => setValue("")}
-              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded-sm p-1 focus-visible:ring-2 focus-visible:outline-none"
+              className="text-ink-2 hover:text-foreground focus-visible:ring-ring rounded-sm p-1 focus-visible:ring-2 focus-visible:outline-none"
             >
               <X className="size-3.5" aria-hidden />
               <span className="sr-only">Clear search</span>

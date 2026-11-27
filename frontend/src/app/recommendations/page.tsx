@@ -12,11 +12,12 @@ export default function RecommendationsPage({ searchParams }: PageProps<"/recomm
   return (
     <>
       <PageHeader
+        meta="How to tell stories · never which stories to cover"
         title="Recommendations"
-        description="Suggestions on how to tell stories (format, style, hook, timing, language), each with the numbers behind it. Editors make the final decision."
+        description="Each suggestion is built from the engagement numbers and shows its evidence. Accept what you want to try; editors make the final decision."
         actions={<GenerateButton />}
       />
-      <Suspense fallback={<SectionSkeleton label="Loading recommendations" height="lg" />}>
+      <Suspense fallback={<SectionSkeleton label="Loading recommendations" rows={6} />}>
         <RecommendationsView searchParams={searchParams} />
       </Suspense>
     </>

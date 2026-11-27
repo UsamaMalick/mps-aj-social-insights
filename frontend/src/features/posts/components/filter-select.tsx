@@ -1,6 +1,5 @@
 "use client";
 
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 export const ALL_OPTION = "all";
 
@@ -30,55 +30,56 @@ interface FilterSelectProps {
   value: string | undefined;
   /** One group renders a flat list; several render with headings and separators. */
   groups: FilterOptionGroup[];
-  allLabel?: string;
-  disabled?: boolean;
-  className?: string;
+  allLabel: string;
   onChange: (value: string | undefined) => void;
 }
 
-export function FilterSelect({
-  id,
-  label,
-  value,
-  groups,
-  allLabel,
-  disabled,
-  className,
-  onChange,
-}: FilterSelectProps) {
+/** A filter chip: "Platform · Instagram". Inked when a value is set, quiet when it isn't. */
+export function FilterSelect({ id, label, value, groups, allLabel, onChange }: FilterSelectProps) {
+  const isActive = value !== undefined;
   return (
-    <div className={className ?? "flex w-full flex-col gap-1.5 sm:w-44"}>
-      <Label htmlFor={id} className="text-muted-foreground text-xs">
-        {label}
-      </Label>
-      <Select
-        value={value ?? ALL_OPTION}
-        disabled={disabled}
-        onValueChange={(next) => onChange(next === ALL_OPTION ? undefined : next)}
+    <Select
+      value={value ?? ALL_OPTION}
+      onValueChange={(next) => onChange(next === ALL_OPTION ? undefined : next)}
+    >
+      <SelectTrigger
+        id={id}
+        aria-label={label}
+        className={cn(
+          "h-9 w-auto gap-2 rounded-md px-3 text-sm transition-colors duration-150",
+          isActive
+            ? "border-ink bg-paper-2 text-ink"
+            : "border-input text-ink-2 hover:text-ink hover:bg-paper-2 bg-transparent",
+        )}
       >
-        <SelectTrigger id={id} className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        {/* "popper" opens the menu below the trigger at its width, instead of over it. */}
-        <SelectContent position="popper" sideOffset={4} className="max-h-80">
-          {allLabel ? (
-            <SelectItem value={ALL_OPTION} className="cursor-pointer">
-              {allLabel}
-            </SelectItem>
-          ) : null}
-          {groups.map((group, index) => (
-            <SelectGroup key={group.label ?? index}>
-              {(allLabel || index > 0) && groups.length > 1 ? <SelectSeparator /> : null}
-              {group.label ? <SelectLabel>{group.label}</SelectLabel> : null}
-              {group.options.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="cursor-pointer">
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+        <span className="text-ink-2">{label}</span>
+        <span aria-hidden className="text-rule-strong">
+          ·
+        </span>
+        <SelectValue />
+      </SelectTrigger>
+      {/* "popper" opens below the chip instead of covering it. */}
+      <SelectContent
+        position="popper"
+        sideOffset={6}
+        align="start"
+        className="border-rule max-h-80 min-w-56 rounded-md border shadow-none ring-0"
+      >
+        <SelectItem value={ALL_OPTION} className="cursor-pointer">
+          {allLabel}
+        </SelectItem>
+        {groups.map((group, index) => (
+          <SelectGroup key={group.label ?? index}>
+            <SelectSeparator className="bg-rule" />
+            {group.label ? <SelectLabel className="eyebrow">{group.label}</SelectLabel> : null}
+            {group.options.map((option) => (
+              <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

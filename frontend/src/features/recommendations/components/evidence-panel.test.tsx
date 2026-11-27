@@ -21,23 +21,30 @@ const EVIDENCE: Evidence = {
 };
 
 describe("EvidencePanel", () => {
-  it("shows lift, sample size and measurement age", () => {
-    render(<EvidencePanel evidence={EVIDENCE} />);
+  it("shows lift, both medians, sample sizes and measurement age", () => {
+    render(<EvidencePanel evidence={EVIDENCE} segmentLabel="Explainers" />);
 
     expect(screen.getByText("1.28×")).toBeInTheDocument();
-    expect(screen.getByText("725 posts vs 3,324")).toBeInTheDocument();
-    expect(screen.getByText("72h after posting")).toBeInTheDocument();
+    expect(screen.getByText("0.62%")).toBeInTheDocument();
+    expect(screen.getByText("0.48%")).toBeInTheDocument();
+    expect(screen.getByText(/725 posts vs 3,324/)).toBeInTheDocument();
+    expect(screen.getByText(/measured 72h after posting/)).toBeInTheDocument();
   });
 
   it("shows usage shares for content gaps", () => {
-    render(<EvidencePanel evidence={EVIDENCE} />);
+    render(<EvidencePanel evidence={EVIDENCE} segmentLabel="Explainers" />);
 
-    expect(screen.getByText("Al Jazeera 3.0% · competitors 22.0%")).toBeInTheDocument();
+    expect(screen.getByText(/3% of Al Jazeera posts vs 22% of competitors/)).toBeInTheDocument();
   });
 
   it("omits usage when the evidence is not a gap", () => {
-    render(<EvidencePanel evidence={{ ...EVIDENCE, own_share: null, competitor_share: null }} />);
+    render(
+      <EvidencePanel
+        evidence={{ ...EVIDENCE, own_share: null, competitor_share: null }}
+        segmentLabel="Explainers"
+      />,
+    );
 
-    expect(screen.queryByText("Usage")).not.toBeInTheDocument();
+    expect(screen.queryByText(/of Al Jazeera posts/)).not.toBeInTheDocument();
   });
 });

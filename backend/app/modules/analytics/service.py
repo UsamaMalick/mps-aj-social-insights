@@ -31,6 +31,15 @@ from app.shared.enums import AnalyticsScope, PatternDimension, SnapshotAge
 
 SECONDS_PER_DAY = 86_400
 GAP_DIMENSIONS = (PatternDimension.STORY_TYPE, PatternDimension.MEDIA_TYPE)
+# How stories are told (never which topics): the dimensions editors can act on.
+HIGHLIGHT_DIMENSIONS = (
+    PatternDimension.MEDIA_TYPE,
+    PatternDimension.STORY_TYPE,
+    PatternDimension.HOOK_STYLE,
+    PatternDimension.TIME_BLOCK,
+    PatternDimension.LANGUAGE,
+)
+NEUTRAL_LIFT = 1.0
 
 
 class AnalyticsService:
@@ -117,6 +126,24 @@ class AnalyticsService:
             ]
             for dimension in PatternDimension
         }
+
+    async def highlights(self, age: SnapshotAge) -> list[SegmentPattern]:
+        """The strongest reliable, above-average segment of each storytelling dimension,
+        strongest first."""
+        _, scored = await self._load(age)
+        best = []
+        for dimension in HIGHLIGHT_DIMENSIONS:
+            top = next(
+                (
+                    stat
+                    for stat in segment_stats(scored, dimension)
+                    if stat.is_reliable and (stat.lift_vs_rest or 0.0) > NEUTRAL_LIFT
+                ),
+                None,
+            )
+            if top is not None:
+                best.append(SegmentPattern.model_validate(top, from_attributes=True))
+        return sorted(best, key=lambda p: p.lift_vs_rest or 0.0, reverse=True)
 
     async def content_gaps(self, age: SnapshotAge) -> list[ContentGap]:
         """Segments competitors use far more than we do and that outperform the rest."""

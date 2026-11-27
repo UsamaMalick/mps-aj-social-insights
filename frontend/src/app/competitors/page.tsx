@@ -11,10 +11,11 @@ export default function CompetitorsPage({ searchParams }: PageProps<"/competitor
   return (
     <>
       <PageHeader
+        meta="Public metrics only · measured 72 hours after posting"
         title="Competitors"
-        description="Accounts side by side on public metrics only (likes, comments, shares, views), at 72 hours."
+        description="Every account ranked by median engagement. Only likes, comments, shares and views are compared, because competitors don’t publish reach, saves or clicks."
       />
-      <Suspense fallback={<SectionSkeleton label="Loading comparison" height="lg" />}>
+      <Suspense fallback={<SectionSkeleton label="Loading comparison" rows={12} />}>
         <CompetitorsView searchParams={searchParams} />
       </Suspense>
     </>

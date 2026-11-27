@@ -48,3 +48,16 @@ async def test_unplanted_dimensions_show_no_strong_pattern(seeded_session: Async
     for dimension in (PatternDimension.HOOK_STYLE, PatternDimension.TOPIC):
         stats = await AnalyticsService(seeded_session).patterns(PatternFilters(dimension=dimension))
         assert all(s.lift_vs_rest is not None and s.lift_vs_rest < 1.15 for s in stats)
+
+
+async def test_highlights_rank_the_strongest_segment_per_dimension(
+    seeded_session: AsyncSession,
+) -> None:
+    highlights = await AnalyticsService(seeded_session).highlights(DEFAULT_SNAPSHOT_AGE)
+
+    lifts = [h.lift_vs_rest or 0.0 for h in highlights]
+    assert lifts == sorted(lifts, reverse=True)
+    assert highlights[0].segment == "reel"
+    assert PatternDimension.TOPIC not in {h.dimension for h in highlights}
+    assert len({h.dimension for h in highlights}) == len(highlights)
+    assert all(h.is_reliable and (h.lift_vs_rest or 0) > 1 for h in highlights)

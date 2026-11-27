@@ -19,11 +19,4 @@ export const METRIC_LABELS: Record<PublicMetric | OwnOnlyMetric, string> = {
   clicks: "Clicks",
 };
 
-export const ENGAGEMENT_SCORE_LABEL = "Engagement score";
-export const ENGAGEMENT_SCORE_HINT = "(likes + comments + shares) ÷ followers, at 72h";
 export const LIFT_HINT = "Compared with the median post of the same account";
-
-export const SERIES_COLORS = {
-  own: "var(--chart-own)",
-  competitor: "var(--chart-competitor)",
-} as const;

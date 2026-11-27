@@ -2,35 +2,37 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { SectionSkeleton } from "@/components/data/section-skeleton";
-import { PageHeader } from "@/components/layout/page-header";
 import {
-  OverviewGapsSection,
-  OverviewSummarySection,
-  OverviewTopPostsSection,
+  BriefingAccountsSection,
+  BriefingInsightsSection,
+  BriefingLeadSection,
+  BriefingTopPostsSection,
 } from "@/features/analytics/components/overview-sections";
 
-export const metadata: Metadata = { title: "Overview" };
+export const metadata: Metadata = { title: "Briefing" };
 
-export default function OverviewPage() {
+export default function BriefingPage() {
   return (
     <>
-      <PageHeader
-        title="Overview"
-        description="How Al Jazeera's posts perform against competitors, compared at 72 hours after posting."
-      />
-      <Suspense fallback={<SectionSkeleton label="Loading summary" height="lg" />}>
-        <OverviewSummarySection />
+      <p className="eyebrow">Briefing · last 90 days · measured 72 hours after posting</p>
+      <Suspense fallback={<SectionSkeleton label="Loading summary" rows={3} />}>
+        <BriefingLeadSection />
       </Suspense>
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <Suspense fallback={<SectionSkeleton label="Loading top posts" height="lg" />}>
-            <OverviewTopPostsSection />
+      <div className="grid gap-12 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <Suspense fallback={<SectionSkeleton label="Loading accounts" rows={8} />}>
+            <BriefingAccountsSection />
           </Suspense>
         </div>
-        <Suspense fallback={<SectionSkeleton label="Loading content gaps" />}>
-          <OverviewGapsSection />
-        </Suspense>
+        <div className="lg:col-span-5">
+          <Suspense fallback={<SectionSkeleton label="Loading insights" rows={5} />}>
+            <BriefingInsightsSection />
+          </Suspense>
+        </div>
       </div>
+      <Suspense fallback={<SectionSkeleton label="Loading standout posts" rows={6} />}>
+        <BriefingTopPostsSection />
+      </Suspense>
     </>
   );
 }

@@ -7,10 +7,10 @@ export default function NotFound() {
   return (
     <EmptyState
       title="Page not found"
-      description="The page you are looking for does not exist."
+      description="The page you were looking for doesn’t exist or has moved."
       action={
-        <Button asChild variant="outline" size="sm">
-          <Link href="/">Back to overview</Link>
+        <Button asChild variant="outline">
+          <Link href="/">Back to the briefing</Link>
         </Button>
       }
     />

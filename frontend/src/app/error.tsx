@@ -17,10 +17,10 @@ export default function ErrorPage({ error, retry }: ErrorPageProps) {
 
   return (
     <ErrorState
-      title="This page could not load"
+      title="This page couldn’t load"
       message="The data service may be unavailable. Check that the backend is running, then try again."
       action={
-        <Button variant="outline" size="sm" className="mt-3" onClick={() => retry()}>
+        <Button variant="outline" onClick={() => retry()}>
           Try again
         </Button>
       }

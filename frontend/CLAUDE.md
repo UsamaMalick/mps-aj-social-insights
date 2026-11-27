@@ -6,7 +6,7 @@ Read the root `CLAUDE.md` first. This file adds frontend-specific rules.
 - **Next.js 16** (App Router, Turbopack), **React 19**, **TypeScript** (`strict`)
 - **pnpm** for packages
 - **Tailwind CSS v4** + **shadcn/ui** (Radix-based components)
-- **Recharts** (through shadcn chart components) for charts
+- **motion** for the few meaningful animations; **sonner** for toasts
 - **openapi-typescript** + **openapi-fetch** for the typed API client
 - **Zod** for env and form validation
 - Quality: **ESLint** (flat config, run via `eslint`, not `next lint`), **Prettier**,
@@ -25,8 +25,8 @@ frontend/
 ├── vitest.config.ts
 └── src/
     ├── app/                  # routes only: thin pages that compose features
-    │   ├── layout.tsx        # shell: sidebar, header, SampleDataBanner
-    │   ├── page.tsx          # Overview dashboard
+    │   ├── layout.tsx        # shell: masthead, SampleDataBanner, Toaster, theme boot script
+    │   ├── page.tsx          # Briefing (overview)
     │   ├── posts/page.tsx    # all posts, filterable
     │   ├── competitors/page.tsx
     │   ├── recommendations/page.tsx
@@ -44,9 +44,10 @@ frontend/
     │       └── types.ts      # UI-only types derived from generated API types
     ├── components/
     │   ├── ui/               # shadcn/ui primitives (generated)
-    │   ├── layout/           # Sidebar, Header, SampleDataBanner, PageHeader
-    │   ├── charts/           # shared chart wrappers (BarChartCard, TrendChart)
-    │   └── data/             # DataTable, EmptyState, ErrorState, StatCard
+    │   ├── layout/           # Masthead, NavLink, ThemeToggle, SampleDataBanner, PageHeader
+    │   ├── navigation/       # SegmentedLinks (URL-driven segmented control)
+    │   ├── motion/           # AnimatedNumber
+    │   └── data/             # DataTable, Figure, InlineBar, EmptyState, ErrorState
     ├── lib/
     │   ├── api/
     │   │   ├── client.ts     # openapi-fetch client (server-only)
@@ -56,7 +57,8 @@ frontend/
     │   └── utils.ts          # cn() and tiny helpers
     ├── hooks/                # shared client hooks (only if used by 2+ features)
     └── config/
-        ├── nav.ts            # sidebar items
+        ├── nav.ts            # masthead sections
+        ├── theme.ts          # theme storage key + boot script
         └── constants.ts
 ```
 
@@ -103,12 +105,29 @@ frontend/
 - **Competitor views never show clicks, reach or saves.** Use the shared
   `PUBLIC_METRICS` constant when building competitor tables or charts.
 
-## Styling
-- Tailwind utilities only; merge classes with `cn()`. No inline `style` except for
-  dynamic values (e.g. chart colors).
-- Design tokens (colors, radius, fonts) are CSS variables in `app/globals.css`. Use
-  tokens, never raw hex values in components.
-- Responsive by default (mobile → desktop). Support light and dark mode via tokens.
+## Styling — "Newsroom Paper" design system
+Tokens live in `app/globals.css`; use them, never raw colours in components.
+
+- **Two colours do the work:** `paper`/`paper-2` (surfaces) and `ink`/`ink-2` (text, Al
+  Jazeera's data series, rules). Neutrals are tinted, never pure grey.
+- **One colour pops:** `pop` (burnt orange) appears ONLY on the single primary action of a
+  view (`<Button variant="primary">`), the active-location marker (nav underline) and
+  focus rings. Never in charts, badges, borders or backgrounds. The default button is ink.
+- **Data series:** own accounts = solid `series-own` (ink), competitors = `series-rival`
+  (ink tint). Mark "own" with weight, a rule or a label too, never colour alone.
+- **Type:** `font-serif` (Instrument Serif) for page titles, headlines and big figures;
+  `font-sans` (Schibsted Grotesk) for everything else; IBM Plex Sans Arabic is the Arabic
+  fallback in both. Use `eyebrow` for small-caps metadata and `tabular` for numbers.
+- **No** drop shadows, glass/blur, gradients, pill badges, icon-in-a-circle cards or
+  identical stat-card grids. Depth comes from hairline `rule` borders and `paper-2`.
+- **Motion** only where it carries meaning (sliding markers, number ticker, drawer,
+  optimistic list changes): 120–320ms, ease-out-quint, no bounce, respect reduced motion.
+- Light and dark: `data-theme` on `<html>` (set before paint by `THEME_BOOT_SCRIPT`),
+  falling back to the system preference.
+- Before calling UI work done, run `npx impeccable detect http://localhost:3000/<page>`.
+  The only accepted finding is `cream-palette` (the cream paper is a deliberate choice).
+- Responsive by default (mobile → desktop). Tailwind utilities only; merge with `cn()`;
+  inline `style` only for dynamic values (bar widths).
 
 ## Language and accessibility
 - Captions may be Arabic or English: render caption text with `dir="auto"`.

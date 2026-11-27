@@ -35,6 +35,8 @@ export const postsSearchParamsSchema = z.object({
     .catch(DEFAULT_SORT)
     .default(DEFAULT_SORT),
   page: z.coerce.number().int().min(1).catch(1).default(1),
+  /** Post shown in the detail drawer. */
+  post: z.uuid().optional().catch(undefined),
 });
 
 export type PostsSearchParams = z.infer<typeof postsSearchParamsSchema>;
@@ -45,6 +47,17 @@ export function parsePostsSearchParams(raw: RawSearchParams): PostsSearchParams 
     Object.entries(raw).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value]),
   );
   return postsSearchParamsSchema.parse(firstValues);
+}
+
+/** How many filters are narrowing the list (search and sort excluded). */
+export function activeFilterCount(params: PostsSearchParams): number {
+  return [
+    params.account ?? params.ownership,
+    params.platform,
+    params.media,
+    params.language,
+    params.story,
+  ].filter((value) => value !== undefined).length;
 }
 
 /** Maps URL params to the backend's query parameters. */

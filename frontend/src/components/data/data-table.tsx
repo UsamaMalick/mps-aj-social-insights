@@ -1,13 +1,6 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 export interface Column<T> {
@@ -24,44 +17,82 @@ interface DataTableProps<T> {
   rows: T[];
   rowKey: (row: T) => string;
   rowClassName?: (row: T) => string | undefined;
+  /** Makes rows act as links (e.g. open a detail drawer). */
+  rowHref?: (row: T) => string;
 }
 
-export function DataTable<T>({ caption, columns, rows, rowKey, rowClassName }: DataTableProps<T>) {
+/** Dense, hairline-ruled table with tabular numbers and a sticky header. */
+export function DataTable<T>({
+  caption,
+  columns,
+  rows,
+  rowKey,
+  rowClassName,
+  rowHref,
+}: DataTableProps<T>) {
   return (
-    <div className="overflow-x-auto rounded-lg border">
-      <Table>
+    <div className="border-rule overflow-x-auto border-y">
+      <table className="w-full border-collapse text-sm">
         <caption className="sr-only">{caption}</caption>
-        <TableHeader>
-          <TableRow>
+        <thead className="bg-paper sticky top-0 z-10">
+          <tr className="border-rule border-b">
             {columns.map((column) => (
-              <TableHead
+              <th
                 key={column.key}
                 scope="col"
-                className={cn(column.align === "end" && "text-end", column.className)}
+                className={cn(
+                  "eyebrow px-3 py-2.5 text-start font-medium whitespace-nowrap first:ps-0 last:pe-0",
+                  column.align === "end" && "text-end",
+                  column.className,
+                )}
               >
                 {column.header}
-              </TableHead>
+              </th>
             ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+          </tr>
+        </thead>
+        <tbody className="divide-rule divide-y">
           {rows.map((row) => (
-            <TableRow key={rowKey(row)} className={rowClassName?.(row)}>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.key}
-                  className={cn(
-                    column.align === "end" && "text-end tabular-nums",
-                    column.className,
-                  )}
-                >
-                  {column.cell(row)}
-                </TableCell>
-              ))}
-            </TableRow>
+            <tr
+              key={rowKey(row)}
+              className={cn(
+                "group transition-colors duration-150",
+                rowHref && "hover:bg-paper-2/70 relative",
+                rowClassName?.(row),
+              )}
+            >
+              {columns.map((column, index) => {
+                const content = column.cell(row);
+                const href = rowHref?.(row);
+                return (
+                  <td
+                    key={column.key}
+                    className={cn(
+                      "px-3 py-3 align-top first:ps-0 last:pe-0",
+                      column.align === "end" && "tabular text-end",
+                      column.className,
+                    )}
+                  >
+                    {href && index === 0 ? (
+                      // One real link per row (first cell) stretched over the row, so the
+                      // whole row is clickable without nesting interactive elements.
+                      <Link
+                        href={href}
+                        scroll={false}
+                        className="focus-visible:ring-ring after:absolute after:inset-0 focus-visible:ring-2 focus-visible:outline-none"
+                      >
+                        {content}
+                      </Link>
+                    ) : (
+                      content
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 }

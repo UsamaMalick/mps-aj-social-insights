@@ -6,10 +6,17 @@ const compactFormatter = new Intl.NumberFormat(NUMBER_LOCALE, {
   maximumFractionDigits: 1,
 });
 const integerFormatter = new Intl.NumberFormat(NUMBER_LOCALE, { maximumFractionDigits: 0 });
+// Engagement rates are small (0.52%), so they need two decimals; larger shares read better
+// with at most one (22%, 3.4%).
+const SMALL_PERCENT = 0.01;
+const smallPercentFormatter = new Intl.NumberFormat(NUMBER_LOCALE, {
+  style: "percent",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 const percentFormatter = new Intl.NumberFormat(NUMBER_LOCALE, {
   style: "percent",
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 2,
+  maximumFractionDigits: 1,
 });
 const liftFormatter = new Intl.NumberFormat(NUMBER_LOCALE, {
   minimumFractionDigits: 2,
@@ -40,9 +47,12 @@ export function formatInteger(value: Numeric): string {
   return isMissing(value) ? EMPTY : integerFormatter.format(value);
 }
 
-/** A ratio (0.034) → "3.4%" */
+/** A ratio → "0.52%" below 1%, otherwise at most one decimal ("3.4%", "22%"). */
 export function formatPercent(value: Numeric): string {
-  return isMissing(value) ? EMPTY : percentFormatter.format(value);
+  if (isMissing(value)) return EMPTY;
+  return Math.abs(value) < SMALL_PERCENT
+    ? smallPercentFormatter.format(value)
+    : percentFormatter.format(value);
 }
 
 /** A lift ratio (1.85) → "1.85×" */

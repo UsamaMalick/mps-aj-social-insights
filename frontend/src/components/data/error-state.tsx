@@ -1,7 +1,4 @@
-import { AlertTriangle } from "lucide-react";
 import type { ReactNode } from "react";
-
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ErrorStateProps {
   title?: string;
@@ -11,13 +8,13 @@ interface ErrorStateProps {
 
 export function ErrorState({ title = "Something went wrong", message, action }: ErrorStateProps) {
   return (
-    <Alert variant="destructive">
-      <AlertTriangle aria-hidden />
-      <AlertTitle>{title}</AlertTitle>
-      <AlertDescription>
-        <p>{message}</p>
-        {action}
-      </AlertDescription>
-    </Alert>
+    <div
+      role="alert"
+      className="border-destructive/30 bg-destructive/5 flex flex-col items-start gap-3 rounded-lg border px-8 py-10"
+    >
+      <p className="text-destructive font-serif text-title">{title}</p>
+      <p className="text-ink-2 max-w-lg text-sm leading-relaxed">{message}</p>
+      {action}
+    </div>
   );
 }

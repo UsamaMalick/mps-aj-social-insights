@@ -73,6 +73,17 @@ async def get_patterns(
 
 
 @router.get(
+    "/highlights",
+    response_model=list[SegmentPattern],
+    summary="Strongest segment per storytelling dimension, strongest first",
+)
+async def get_highlights(
+    service: AnalyticsServiceDep, params: Annotated[SnapshotParams, Query()]
+) -> list[SegmentPattern]:
+    return await service.highlights(params.age)
+
+
+@router.get(
     "/gaps", response_model=list[ContentGap], summary="Content competitors use and we do not"
 )
 async def get_content_gaps(

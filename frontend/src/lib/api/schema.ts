@@ -1081,6 +1081,7 @@ export interface operations {
         parameters: {
             query?: {
                 age?: components["schemas"]["SnapshotAge"];
+                platform?: components["schemas"]["Platform"] | null;
             };
             header?: never;
             path?: never;

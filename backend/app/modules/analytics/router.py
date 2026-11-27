@@ -6,6 +6,7 @@ from app.api.deps import SessionDep
 from app.modules.analytics.schemas import (
     AccountSummary,
     CompetitorComparison,
+    CompetitorFilters,
     ContentGap,
     PatternFilters,
     SegmentPattern,
@@ -40,9 +41,9 @@ async def get_account_summaries(
     summary="All accounts side by side (public metrics only)",
 )
 async def get_competitor_comparison(
-    service: AnalyticsServiceDep, params: Annotated[SnapshotParams, Query()]
+    service: AnalyticsServiceDep, filters: Annotated[CompetitorFilters, Query()]
 ) -> list[CompetitorComparison]:
-    return await service.competitor_comparison(params.age)
+    return await service.competitor_comparison(filters)
 
 
 @router.get("/top-posts", response_model=list[TopPost], summary="Highest-lift posts")

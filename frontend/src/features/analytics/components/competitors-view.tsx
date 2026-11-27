@@ -12,9 +12,7 @@ interface CompetitorsViewProps {
 
 export async function CompetitorsView({ searchParams }: CompetitorsViewProps) {
   const platform = parseCompetitorsPlatform(await searchParams);
-  const rows = (await getCompetitorComparison()).filter(
-    (row) => platform === undefined || row.account.platform === platform,
-  );
+  const rows = await getCompetitorComparison(platform);
 
   return (
     <>

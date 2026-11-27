@@ -62,3 +62,17 @@ async def test_snapshot_age_must_be_a_supported_age(db_client: AsyncClient) -> N
     response = await db_client.get("/api/v1/analytics/summary", params={"age": 48})
 
     assert response.status_code == 422
+
+
+async def test_competitor_comparison_filters_by_platform_on_the_server(
+    db_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    await _seed_small(db_session)
+    facebook = await create_account(db_session, handle="fb_rival", platform="facebook")
+    post = await create_post(db_session, facebook)
+    await create_snapshot(db_session, post.id)
+
+    response = await db_client.get("/api/v1/analytics/competitors", params={"platform": "facebook"})
+
+    assert response.status_code == 200
+    assert [row["account"]["handle"] for row in response.json()] == ["fb_rival"]

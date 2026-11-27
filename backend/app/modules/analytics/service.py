@@ -17,6 +17,7 @@ from app.modules.analytics.patterns import (
 from app.modules.analytics.schemas import (
     AccountSummary,
     CompetitorComparison,
+    CompetitorFilters,
     ContentGap,
     PatternFilters,
     SegmentPattern,
@@ -58,14 +59,15 @@ class AnalyticsService:
             if by_account[account.id]
         ]
 
-    async def competitor_comparison(self, age: SnapshotAge) -> list[CompetitorComparison]:
-        """Every account side by side, using public metrics only."""
-        accounts, scored = await self._load(age)
+    async def competitor_comparison(self, filters: CompetitorFilters) -> list[CompetitorComparison]:
+        """Accounts side by side (optionally one platform), using public metrics only."""
+        accounts, scored = await self._load(filters.age)
         by_account = _group_by_account(scored)
         return [
             _compare(account, by_account[account.id])
             for account in accounts.values()
             if by_account[account.id]
+            and (filters.platform is None or account.platform == filters.platform)
         ]
 
     async def top_posts(self, filters: TopPostFilters) -> list[TopPost]:

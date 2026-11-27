@@ -24,6 +24,10 @@ class SnapshotParams(BaseSchema):
     age: SnapshotAge = DEFAULT_SNAPSHOT_AGE
 
 
+class CompetitorFilters(SnapshotParams):
+    platform: Platform | None = None
+
+
 class AccountSummary(BaseSchema):
     """Per-account totals. Own-only fields are None for competitors."""
 

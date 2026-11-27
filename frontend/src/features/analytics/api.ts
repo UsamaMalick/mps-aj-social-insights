@@ -2,14 +2,14 @@ import "server-only";
 
 import { api, unwrap } from "@/lib/api/client";
 
-import type { PatternDimension } from "./types";
+import type { PatternDimension, Platform } from "./types";
 
 export async function getAccountSummaries() {
   return unwrap(api.GET("/api/v1/analytics/summary"));
 }
 
-export async function getCompetitorComparison() {
-  return unwrap(api.GET("/api/v1/analytics/competitors"));
+export async function getCompetitorComparison(platform: Platform | undefined) {
+  return unwrap(api.GET("/api/v1/analytics/competitors", { params: { query: { platform } } }));
 }
 
 export async function getTopPosts(limit: number) {

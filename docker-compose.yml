@@ -1,0 +1,69 @@
+name: mps-aj-social-insights
+
+x-postgres: &postgres
+  image: postgres:17-alpine
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+    interval: 2s
+    timeout: 3s
+    retries: 30
+
+services:
+  postgres:
+    <<: *postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-social_insights}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-social_insights}
+      POSTGRES_DB: social_insights
+    ports:
+      - "${POSTGRES_PORT:-5440}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  postgres-test:
+    <<: *postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-social_insights}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-social_insights}
+      POSTGRES_DB: social_insights_test
+    ports:
+      - "${POSTGRES_TEST_PORT:-5441}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    image: mps-aj-social-insights-api
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-social_insights}:${POSTGRES_PASSWORD:-social_insights}@postgres:5432/social_insights
+    command: ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      # Source is mounted for live reload; the virtualenv lives in /opt/venv inside the image.
+      - ./backend:/app
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  frontend:
+    build: ./frontend
+    image: mps-aj-social-insights-portal
+    environment:
+      API_URL: http://backend:8000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -81,7 +81,8 @@ Mark a phase done by changing `[ ]` to `[x]` and adding one line of notes under 
   showing each suggestion with its evidence
 - **Done when:** recommendations reflect the planted patterns and `make check` passes.
 
-## [ ] Phase 9 — Final polish
+## [x] Phase 9 — Final polish
+> Done: README (setup, AI options, architecture, path to Meta data); unused code removed; fresh clone verified with `make up && make migrate && make seed && make tag`.
 - README: setup, commands, architecture summary, how to switch to real data later
 - Remove dead code, fix all warnings, confirm `.env.example` is complete
 - **Done when:** a fresh clone runs with `make up && make migrate && make seed && make tag`.

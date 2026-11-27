@@ -34,6 +34,9 @@ class PostTagRepository(BaseRepository[PostTag]):
         await self.session.execute(stmt)
         return len(tags)
 
+    async def list_all(self) -> Sequence[PostTag]:
+        return (await self.session.scalars(select(PostTag))).all()
+
     async def get_for_post(self, post_id: UUID) -> PostTag | None:
         return await self.session.scalar(select(PostTag).where(PostTag.post_id == post_id))
 

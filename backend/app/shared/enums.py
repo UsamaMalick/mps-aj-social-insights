@@ -119,3 +119,11 @@ class PatternDimension(StrEnum):
     TOPIC = "topic"
     LANGUAGE = "language"
     TIME_BLOCK = "time_block"
+
+
+class AnalyticsScope(StrEnum):
+    """Which accounts an analysis covers."""
+
+    ALL = "all"
+    OWN = "own"
+    COMPETITORS = "competitors"

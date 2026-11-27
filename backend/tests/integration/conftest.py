@@ -18,6 +18,7 @@ from sqlalchemy.pool import NullPool
 from alembic import command
 from app.core.config import get_settings
 from app.core.database import get_session
+from tests.seed_helpers import seed_and_tag_with_ground_truth
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 
@@ -47,6 +48,22 @@ async def db_session(db_engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
             bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
         )
         try:
+            yield session
+        finally:
+            await session.close()
+            await transaction.rollback()
+
+
+@pytest.fixture(scope="module")
+async def seeded_session(db_engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
+    """The full seeded + ground-truth-tagged dataset, shared by a module, then rolled back."""
+    async with db_engine.connect() as connection:
+        transaction = await connection.begin()
+        session = AsyncSession(
+            bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
+        )
+        try:
+            await seed_and_tag_with_ground_truth(session)
             yield session
         finally:
             await session.close()

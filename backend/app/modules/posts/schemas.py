@@ -46,3 +46,16 @@ class MetricSnapshotCreate(PublicMetrics, OwnOnlyMetrics):
 
 class MetricSnapshotRead(MetricSnapshotCreate):
     id: UUID
+
+
+class PostMetricsRow(PublicMetrics, OwnOnlyMetrics):
+    """A post with its metrics at one snapshot age (input to analytics)."""
+
+    post_id: UUID
+    account_id: UUID
+    platform: Platform
+    media_type: MediaType
+    language: Language
+    caption: str
+    posted_at: datetime
+    url: str

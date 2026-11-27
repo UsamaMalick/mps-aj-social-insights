@@ -38,20 +38,208 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Engagement summary per account */
+        get: operations["get_account_summaries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/competitors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All accounts side by side (public metrics only) */
+        get: operations["get_competitor_comparison"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/top-posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Highest-lift posts */
+        get: operations["get_top_posts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/patterns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Engagement by segment of a dimension */
+        get: operations["get_patterns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/gaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Content competitors use and we do not */
+        get: operations["get_content_gaps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountRead */
+        AccountRead: {
+            platform: components["schemas"]["Platform"];
+            /** Handle */
+            handle: string;
+            /** Display Name */
+            display_name: string;
+            /** Is Own */
+            is_own: boolean;
+            /** Followers Count */
+            followers_count: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /**
+         * AccountSummary
+         * @description Per-account totals. Own-only fields are None for competitors.
+         */
+        AccountSummary: {
+            account: components["schemas"]["AccountRead"];
+            /** Post Count */
+            post_count: number;
+            /** Median Engagement Score */
+            median_engagement_score: number;
+            /** Mean Engagement Score */
+            mean_engagement_score: number;
+            /** Total Interactions */
+            total_interactions: number;
+            /** Median Views */
+            median_views: number;
+            /** Total Reach */
+            total_reach?: number | null;
+            /** Total Saves */
+            total_saves?: number | null;
+            /** Total Clicks */
+            total_clicks?: number | null;
+        };
+        /**
+         * AnalyticsScope
+         * @description Which accounts an analysis covers.
+         * @enum {string}
+         */
+        AnalyticsScope: "all" | "own" | "competitors";
+        /**
+         * CompetitorComparison
+         * @description Public metrics only, so own and competitor accounts are comparable.
+         */
+        CompetitorComparison: {
+            account: components["schemas"]["AccountRead"];
+            /** Post Count */
+            post_count: number;
+            /** Median Engagement Score */
+            median_engagement_score: number;
+            /** Median Likes */
+            median_likes: number;
+            /** Median Comments */
+            median_comments: number;
+            /** Median Shares */
+            median_shares: number;
+            /** Median Views */
+            median_views: number;
+            /** Posts Per Day */
+            posts_per_day: number;
+        };
+        /** ContentGap */
+        ContentGap: {
+            dimension: components["schemas"]["PatternDimension"];
+            /** Segment */
+            segment: string;
+            /** Own Share */
+            own_share: number;
+            /** Competitor Share */
+            competitor_share: number;
+            /** Own Post Count */
+            own_post_count: number;
+            /** Competitor Post Count */
+            competitor_post_count: number;
+            /** Lift Vs Rest */
+            lift_vs_rest: number | null;
+        };
         /**
          * DataSourceKind
          * @enum {string}
          */
         DataSourceKind: "seed" | "meta";
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** HealthRead */
         HealthRead: {
             /** Status */
             status: string;
         };
+        /**
+         * HookStyle
+         * @enum {string}
+         */
+        HookStyle: "question" | "statistic" | "quote" | "bold_claim" | "straight_news";
+        /**
+         * Language
+         * @enum {string}
+         */
+        Language: "ar" | "en";
+        /**
+         * MediaType
+         * @enum {string}
+         */
+        MediaType: "image" | "video" | "reel" | "carousel";
         /** MetaRead */
         MetaRead: {
             /** App Title */
@@ -59,6 +247,131 @@ export interface components {
             data_source: components["schemas"]["DataSourceKind"];
             /** Llm Enabled */
             llm_enabled: boolean;
+        };
+        /**
+         * PatternDimension
+         * @description A post attribute that engagement patterns are grouped by.
+         * @enum {string}
+         */
+        PatternDimension: "media_type" | "story_type" | "hook_style" | "topic" | "language" | "time_block";
+        /**
+         * Platform
+         * @enum {string}
+         */
+        Platform: "instagram" | "facebook";
+        /**
+         * Region
+         * @enum {string}
+         */
+        Region: "middle_east" | "africa" | "europe" | "asia" | "americas" | "global";
+        /** SegmentPattern */
+        SegmentPattern: {
+            dimension: components["schemas"]["PatternDimension"];
+            /** Segment */
+            segment: string;
+            /** Post Count */
+            post_count: number;
+            /** Share */
+            share: number;
+            /** Median Engagement Score */
+            median_engagement_score: number;
+            /** Median Lift */
+            median_lift: number;
+            /** Lift Vs Rest */
+            lift_vs_rest: number | null;
+            /** Rest Post Count */
+            rest_post_count: number;
+            /** Accounts Compared */
+            accounts_compared: number;
+            /** Is Reliable */
+            is_reliable: boolean;
+        };
+        /**
+         * SnapshotAge
+         * @description Fixed post ages (hours) at which metrics are captured. Compare posts only at equal age.
+         * @enum {integer}
+         */
+        SnapshotAge: 24 | 72;
+        /**
+         * StoryType
+         * @enum {string}
+         */
+        StoryType: "breaking" | "explainer" | "human_interest" | "analysis" | "live_update";
+        /**
+         * TagLabels
+         * @description The labels themselves; also the structured output the LLM must return.
+         */
+        TagLabels: {
+            topic: components["schemas"]["Topic"];
+            region: components["schemas"]["Region"];
+            story_type: components["schemas"]["StoryType"];
+            hook_style: components["schemas"]["HookStyle"];
+            tone: components["schemas"]["Tone"];
+        };
+        /**
+         * Tone
+         * @enum {string}
+         */
+        Tone: "neutral" | "urgent" | "emotional" | "informative";
+        /** TopPost */
+        TopPost: {
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Account Display Name */
+            account_display_name: string;
+            /** Is Own */
+            is_own: boolean;
+            platform: components["schemas"]["Platform"];
+            media_type: components["schemas"]["MediaType"];
+            language: components["schemas"]["Language"];
+            /** Caption */
+            caption: string;
+            /**
+             * Posted At
+             * Format: date-time
+             */
+            posted_at: string;
+            /** Url */
+            url: string;
+            /** Likes */
+            likes: number;
+            /** Comments */
+            comments: number;
+            /** Shares */
+            shares: number;
+            /** Views */
+            views: number;
+            /** Engagement Score */
+            engagement_score: number;
+            /** Lift */
+            lift: number;
+            labels: components["schemas"]["TagLabels"] | null;
+        };
+        /**
+         * Topic
+         * @enum {string}
+         */
+        Topic: "politics" | "conflict" | "economy" | "climate" | "health" | "technology" | "sports" | "culture";
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -105,6 +418,166 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetaRead"];
+                };
+            };
+        };
+    };
+    get_account_summaries: {
+        parameters: {
+            query?: {
+                age?: components["schemas"]["SnapshotAge"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_competitor_comparison: {
+        parameters: {
+            query?: {
+                age?: components["schemas"]["SnapshotAge"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompetitorComparison"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_top_posts: {
+        parameters: {
+            query?: {
+                age?: components["schemas"]["SnapshotAge"];
+                scope?: components["schemas"]["AnalyticsScope"];
+                account_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopPost"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_patterns: {
+        parameters: {
+            query: {
+                age?: components["schemas"]["SnapshotAge"];
+                dimension: components["schemas"]["PatternDimension"];
+                scope?: components["schemas"]["AnalyticsScope"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SegmentPattern"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_content_gaps: {
+        parameters: {
+            query?: {
+                age?: components["schemas"]["SnapshotAge"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentGap"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -41,6 +41,16 @@ class PostRepository(BaseRepository[Post]):
         rows = await self.session.scalars(select(Post).where(Post.id.in_(ids)))
         return rows.all()
 
+    async def list_with_metrics(self, age: SnapshotAge) -> Sequence[tuple[Post, MetricSnapshot]]:
+        """Every post joined with its snapshot at `age` (posts without one are skipped)."""
+        rows = await self.session.execute(
+            select(Post, MetricSnapshot)
+            .join(MetricSnapshot, MetricSnapshot.post_id == Post.id)
+            .where(MetricSnapshot.hours_since_post == age)
+            .order_by(Post.posted_at, Post.id)
+        )
+        return [(post, snapshot) for post, snapshot in rows.all()]
+
 
 class MetricSnapshotRepository(BaseRepository[MetricSnapshot]):
     model = MetricSnapshot

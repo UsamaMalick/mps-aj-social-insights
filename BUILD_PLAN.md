@@ -41,7 +41,8 @@ Mark a phase done by changing `[ ]` to `[x]` and adding one line of notes under 
 - `SeedDataSource`, ingestion service, `make seed` CLI command
 - **Done when:** `make seed` fills the DB twice with identical results.
 
-## [ ] Phase 4 — Analytics
+## [x] Phase 4 — Analytics
+> Done: within-account segment lift (removes account-mix bias); answer-key test recovers all 5 patterns + explainer gap; summary/top-posts/patterns/gaps/competitors endpoints.
 - `analytics/metrics.py` (engagement score, lift — pure functions, fully unit tested)
 - Service + endpoints: summary per account, top posts, patterns by tag/format/time/language,
   own vs competitor gaps

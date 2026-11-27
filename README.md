@@ -27,22 +27,32 @@ patterns into suggestions, then accept or dismiss each one.
 
 ### AI features (optional)
 
-Set `ANTHROPIC_API_KEY` in `.env` and restart (`make up`) to enable:
+Configure **Anthropic**, **Azure OpenAI**, or both in `.env`, then restart (`make up`):
 
-- **Tagging** (`make tag`): Claude labels each caption's topic, region, story type, hook
-  style and tone. It sends 25 captions per request, so ≈160 requests for the full sample.
-  Use `docker compose exec backend python -m app.cli tag --limit 200`
-  to try it on a subset first.
-- **Recommendation wording**: Claude writes each recommendation's title and text. The
-  category, numbers and sample sizes always come from analytics, never from the model.
+| Provider | Settings |
+|---|---|
+| Anthropic | `ANTHROPIC_API_KEY`, `LLM_MODEL` (default `claude-opus-5`) |
+| Azure OpenAI | `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT`, `AZURE_OPENAI_API_VERSION`, `AZURE_OPENAI_REASONING` (false for gpt-4o) |
 
-The model is set by `LLM_MODEL` (default `claude-opus-5`). Requests opt into Anthropic's
-server-side fallback, so a policy refusal is retried on a substitute model. Model output is
-validated against a schema, retried once, and otherwise skipped. Unvalidated output is never
-stored.
+With both configured, `LLM_PROVIDER` (default `anthropic`) is tried first and the other
+takes over automatically if a request fails (spending limit, outage, bad key). A failed
+provider is skipped for 10 minutes so a long tagging run doesn't keep hitting it. Each tag
+and recommendation stores the model that actually produced it.
 
-Without a key everything still works: tags come from the seed generator's ground truth and
-recommendations use templates.
+What the AI does:
+
+- **Tagging** (`make tag`): labels each caption's topic, region, story type, hook style and
+  tone. It sends 25 captions per request, so ≈160 requests for the full sample. Use
+  `docker compose exec backend python -m app.cli tag --limit 200` to try it on a subset.
+- **Recommendation wording**: writes each recommendation's title and text. The category,
+  numbers and sample sizes always come from analytics, never from the model.
+
+Output is requested as strict JSON, validated against a schema, retried once, and
+otherwise skipped. Unvalidated output is never stored. Claude requests also opt into
+Anthropic's server-side fallback, so a policy refusal is retried on a substitute model.
+
+Without any provider everything still works: tags come from the seed generator's ground
+truth and recommendations use templates.
 
 ## Commands
 

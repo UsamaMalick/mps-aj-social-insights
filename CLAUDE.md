@@ -62,7 +62,7 @@ Next.js (UI, server-side rendering)
 FastAPI  ── router → service → repository ──►  PostgreSQL
    │
    ├── ingestion  → DataSource interface → SeedDataSource (now) / MetaDataSource (later)
-   └── tagging / recommendations → LLMClient interface → Anthropic API
+   └── tagging / recommendations → LLMClient interface → Anthropic / Azure OpenAI (fallback chain)
 ```
 
 Key decisions:

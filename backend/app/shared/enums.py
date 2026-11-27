@@ -14,6 +14,11 @@ class DataSourceKind(StrEnum):
     META = "meta"
 
 
+class LLMProvider(StrEnum):
+    ANTHROPIC = "anthropic"
+    AZURE_OPENAI = "azure_openai"
+
+
 class Platform(StrEnum):
     INSTAGRAM = "instagram"
     FACEBOOK = "facebook"

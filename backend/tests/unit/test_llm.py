@@ -40,7 +40,9 @@ async def test_invalid_output_is_retried_once() -> None:
         client, system="s", prompt="p", output_type=_Answer, effort="low", max_tokens=10
     )
 
-    assert result == _Answer(value=3)
+    assert result is not None
+    assert result.value == _Answer(value=3)
+    assert result.model == "fake-model"
     assert len(client.calls) == 2
 
 

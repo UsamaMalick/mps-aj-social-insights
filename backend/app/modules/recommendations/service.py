@@ -46,13 +46,15 @@ class RecommendationService:
         """
         patterns = await self.analytics.all_patterns(AnalyticsScope.ALL, DEFAULT_SNAPSHOT_AGE)
         items = build_evidence(patterns, await self.analytics.content_gaps(DEFAULT_SNAPSHOT_AGE))
-        llm_drafts = await self._llm_drafts(llm, items) if llm is not None and items else {}
+        llm_drafts, llm_model = (
+            await self._llm_drafts(llm, items) if llm is not None and items else ({}, None)
+        )
 
         await self.repository.delete_with_status(RecommendationStatus.NEW)
         created = []
         for ref, item in enumerate(items):
             draft = llm_drafts.get(ref)
-            created.append(await self.repository.create(_to_create(item, draft, llm, ref)))
+            created.append(await self.repository.create(_to_create(item, draft, llm_model, ref)))
         await self.session.commit()
         logger.info(
             "recommendations generated",
@@ -62,9 +64,10 @@ class RecommendationService:
 
     async def _llm_drafts(
         self, llm: LLMClient, items: list[EvidenceItem]
-    ) -> dict[int, RecommendationDraft]:
+    ) -> tuple[dict[int, RecommendationDraft], str | None]:
+        """LLM wording keyed by evidence ref, and the model that wrote it."""
         try:
-            output = await generate_structured(
+            result = await generate_structured(
                 llm,
                 system=SYSTEM_PROMPT,
                 prompt=build_prompt(items),
@@ -76,10 +79,11 @@ class RecommendationService:
             logger.error(
                 "llm recommendations failed; using templates", extra={"error": exc.message}
             )
-            return {}
-        if output is None:
-            return {}
-        return {draft.ref: draft for draft in output.items if 0 <= draft.ref < len(items)}
+            return {}, None
+        if result is None:
+            return {}, None
+        drafts = {d.ref: d for d in result.value.items if 0 <= d.ref < len(items)}
+        return drafts, result.model
 
     async def list_recommendations(
         self, filters: RecommendationFilters, pagination: PaginationParams
@@ -111,10 +115,10 @@ class RecommendationService:
 
 
 def _to_create(
-    item: EvidenceItem, draft: RecommendationDraft | None, llm: LLMClient | None, ref: int
+    item: EvidenceItem, draft: RecommendationDraft | None, llm_model: str | None, ref: int
 ) -> RecommendationCreate:
-    if draft is not None and llm is not None:
-        source, prompt_version, model = RecommendationSource.LLM, PROMPT_VERSION, llm.model
+    if draft is not None and llm_model is not None:
+        source, prompt_version, model = RecommendationSource.LLM, PROMPT_VERSION, llm_model
     else:
         draft = template_draft(ref, item)
         source, prompt_version, model = (

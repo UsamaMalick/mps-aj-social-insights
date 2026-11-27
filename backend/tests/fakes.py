@@ -5,7 +5,7 @@ import re
 from collections.abc import Callable
 from typing import Any
 
-from app.integrations.llm.base import Effort
+from app.integrations.llm.base import Effort, LLMResponse
 
 CAPTION_REF = re.compile(r'<caption ref="(\d+)">')
 
@@ -25,16 +25,19 @@ def label_every_caption(prompt: str) -> str:
 
 
 class FakeLLMClient:
-    def __init__(self, respond: Callable[[str], str] = label_every_caption) -> None:
+    def __init__(
+        self, respond: Callable[[str], str] = label_every_caption, model: str = "fake-model"
+    ) -> None:
         self.respond = respond
+        self.model = model
         self.calls: list[dict[str, Any]] = []
 
     @property
-    def model(self) -> str:
-        return "fake-model"
+    def name(self) -> str:
+        return f"fake/{self.model}"
 
     async def complete_json(
         self, *, system: str, prompt: str, schema: dict[str, Any], effort: Effort, max_tokens: int
-    ) -> str:
+    ) -> LLMResponse:
         self.calls.append({"system": system, "prompt": prompt, "schema": schema})
-        return self.respond(prompt)
+        return LLMResponse(text=self.respond(prompt), model=self.model)

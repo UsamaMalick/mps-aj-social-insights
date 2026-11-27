@@ -45,7 +45,7 @@ class LLMTagger:
     async def _tag_batch(self, posts: Sequence[PostRead]) -> list[PostTagCreate]:
         async with self._limit:
             try:
-                output = await generate_structured(
+                result = await generate_structured(
                     self.client,
                     system=SYSTEM_PROMPT,
                     prompt=build_prompt([(ref, post.caption) for ref, post in enumerate(posts)]),
@@ -58,10 +58,10 @@ class LLMTagger:
                     "tagging batch failed", extra={"posts": len(posts), "error": exc.message}
                 )
                 return []
-        if output is None:
+        if result is None:
             return []
 
-        by_ref = {item.ref: item for item in output.items}
+        by_ref = {item.ref: item for item in result.value.items}
         missing = [ref for ref in range(len(posts)) if ref not in by_ref]
         if missing:
             logger.warning("llm skipped captions", extra={"missing_refs": missing})
@@ -70,7 +70,7 @@ class LLMTagger:
                 post_id=posts[ref].id,
                 source=self.source,
                 prompt_version=PROMPT_VERSION,
-                model=self.client.model,
+                model=result.model,
                 **TagLabels.model_validate(item, from_attributes=True).model_dump(),
             )
             for ref, item in by_ref.items()

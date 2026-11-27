@@ -8,7 +8,8 @@ team does not need service boundaries, queues or caches; module boundaries (serv
 talk to services) keep the option of splitting later.
 
 ## ADR-002 — Swappable edges behind Protocols
-Data sources (`DataSource`) and the LLM (`LLMClient`) are `typing.Protocol`s. Moving from
+Data sources (`DataSource`) and the LLM (`LLMClient`) are `typing.Protocol`s. Anthropic and
+Azure OpenAI both implement `LLMClient`; with both configured they form a fallback chain. Moving from
 seed data to Meta's APIs means adding `MetaDataSource` and setting `DATA_SOURCE=meta`;
 nothing else changes.
 

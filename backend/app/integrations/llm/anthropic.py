@@ -7,7 +7,7 @@ from anthropic import AsyncAnthropic
 from anthropic.types.beta import BetaMessageParam, BetaOutputConfigParam
 
 from app.core.exceptions import ExternalServiceError
-from app.integrations.llm.base import Effort, LLMOutputError
+from app.integrations.llm.base import Effort, LLMOutputError, LLMResponse
 
 # Server-side fallback: if the model declines for policy reasons, the API re-runs the
 # request on Anthropic's recommended substitute model instead of returning a refusal.
@@ -21,12 +21,12 @@ class AnthropicLLMClient:
         self._model = model
 
     @property
-    def model(self) -> str:
-        return self._model
+    def name(self) -> str:
+        return f"anthropic/{self._model}"
 
     async def complete_json(
         self, *, system: str, prompt: str, schema: dict[str, Any], effort: Effort, max_tokens: int
-    ) -> str:
+    ) -> LLMResponse:
         messages: list[BetaMessageParam] = [{"role": "user", "content": prompt}]
         output_config: BetaOutputConfigParam = {
             "effort": effort,
@@ -62,4 +62,5 @@ class AnthropicLLMClient:
         )
         if text is None:
             raise LLMOutputError("response contained no text block")
-        return text
+        # `response.model` is the model that answered, which differs after a server fallback.
+        return LLMResponse(text=text, model=response.model)

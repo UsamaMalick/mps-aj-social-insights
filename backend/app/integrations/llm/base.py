@@ -2,6 +2,7 @@
 
 import logging
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel
@@ -19,15 +20,29 @@ class LLMOutputError(Exception):
     """The model answered but produced no usable output (refusal, truncation, no text)."""
 
 
+@dataclass(frozen=True, slots=True)
+class LLMResponse:
+    text: str
+    model: str  # the model that actually answered (stored with results for traceability)
+
+
+@dataclass(frozen=True, slots=True)
+class StructuredResult[T: BaseModel]:
+    value: T
+    model: str
+
+
 class LLMClient(Protocol):
     @property
-    def model(self) -> str: ...
+    def name(self) -> str:
+        """Provider and configured model, for logs."""
+        ...
 
     async def complete_json(
         self, *, system: str, prompt: str, schema: dict[str, Any], effort: Effort, max_tokens: int
-    ) -> str:
-        """Return the model's JSON answer as text. Raises `LLMOutputError` or
-        `ExternalServiceError` (API failures)."""
+    ) -> LLMResponse:
+        """Return the model's JSON answer. Raises `LLMOutputError` or `ExternalServiceError`
+        (API failures)."""
         ...
 
 
@@ -66,7 +81,7 @@ async def generate_structured[T: BaseModel](
     output_type: type[T],
     effort: Effort,
     max_tokens: int,
-) -> T | None:
+) -> StructuredResult[T] | None:
     """Ask for JSON matching `output_type` and validate it.
 
     Invalid output is retried once; after that it is logged and None is returned, so nothing
@@ -75,10 +90,12 @@ async def generate_structured[T: BaseModel](
     schema = strict_json_schema(output_type)
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            raw = await client.complete_json(
+            response = await client.complete_json(
                 system=system, prompt=prompt, schema=schema, effort=effort, max_tokens=max_tokens
             )
-            return output_type.model_validate_json(raw)
+            return StructuredResult(
+                value=output_type.model_validate_json(response.text), model=response.model
+            )
         except (LLMOutputError, PydanticValidationError) as exc:
             logger.warning(
                 "invalid llm output",
@@ -86,6 +103,6 @@ async def generate_structured[T: BaseModel](
             )
     logger.error(
         "llm output still invalid after retry; skipping",
-        extra={"output_type": output_type.__name__, "model": client.model},
+        extra={"output_type": output_type.__name__, "llm": client.name},
     )
     return None

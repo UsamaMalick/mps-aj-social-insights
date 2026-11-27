@@ -7,7 +7,7 @@ Read the root `CLAUDE.md` first. This file adds backend-specific rules.
 - **FastAPI**, **Pydantic v2**, **pydantic-settings**
 - **SQLAlchemy 2.x (async)** + **asyncpg**, **Alembic** for migrations
 - **Typer** for CLI jobs (seed, ingest, tag, analyze)
-- **Anthropic Python SDK** behind the `LLMClient` interface
+- **Anthropic Python SDK** and **OpenAI Python SDK** (Azure OpenAI) behind the `LLMClient` interface
 - Quality: **ruff** (lint + format), **mypy --strict**, **pytest** + **pytest-asyncio** + **httpx**
 
 ## Folder structure
@@ -40,8 +40,11 @@ backend/
 │   │   └── enums.py          # Platform, MediaType, Language, StoryType, HookStyle…
 │   ├── integrations/
 │   │   └── llm/
-│   │       ├── base.py       # LLMClient Protocol
-│   │       └── anthropic.py  # AnthropicLLMClient
+│   │       ├── base.py       # LLMClient Protocol, generate_structured()
+│   │       ├── anthropic.py  # AnthropicLLMClient
+│   │       ├── azure_openai.py # AzureOpenAILLMClient
+│   │       ├── fallback.py   # FallbackLLMClient (primary → other provider)
+│   │       └── factory.py    # get_llm_client(settings)
 │   ├── modules/
 │   │   ├── accounts/         # our + competitor social accounts
 │   │   ├── posts/            # posts + metric snapshots
@@ -166,8 +169,11 @@ async def get_post(post_id: UUID, service: PostServiceDep) -> PostRead:
 
 ### LLM
 - All LLM calls go through `LLMClient` (`integrations/llm/`). No module imports the
-  Anthropic SDK directly.
-- Model name comes from settings (`LLM_MODEL`), never hard-coded.
+  Anthropic or OpenAI SDK directly; `get_llm_client()` is the only place providers are built.
+- `LLM_PROVIDER` picks the primary provider; any other configured provider becomes an
+  automatic fallback. Model / deployment names come from settings, never hard-coded.
+- Store the model returned in the response (`LLMResponse.model`), not the configured one,
+  so results record which provider actually answered.
 - Ask for structured output and **validate it with a Pydantic schema**. Invalid output is
   retried once, then logged and skipped — never stored unvalidated.
 - Every prompt has a `PROMPT_VERSION` constant. Store `prompt_version` and `model` with

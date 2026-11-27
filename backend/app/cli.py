@@ -62,7 +62,9 @@ def ingest() -> None:
 async def _tag(limit: int | None) -> None:
     llm = get_llm_client(get_settings())
     if llm is None:
-        typer.echo("ANTHROPIC_API_KEY is not set: using rule-based tags from the seed metadata.")
+        typer.echo("No LLM provider is configured: using rule-based tags from the seed metadata.")
+    else:
+        typer.echo(f"Tagging with {llm.name}.")
     try:
         async with get_sessionmaker()() as session:
             result = await TaggingService(session).tag_untagged(llm, limit)

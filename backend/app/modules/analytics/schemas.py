@@ -42,6 +42,16 @@ class AccountSummary(BaseSchema):
     total_clicks: int | None = None
 
 
+class OverviewTotals(BaseSchema):
+    """Headline numbers. Reach is summed over own accounts only (own-only metric)."""
+
+    own_posts: int
+    own_interactions: int
+    own_reach: int
+    own_median_engagement_score: float | None
+    competitor_median_engagement_score: float | None
+
+
 class TopPostFilters(SnapshotParams):
     scope: AnalyticsScope = AnalyticsScope.ALL
     account_id: UUID | None = None

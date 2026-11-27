@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Headline numbers: own vs competitors */
+        get: operations["get_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analytics/competitors": {
         parameters: {
             query?: never;
@@ -437,6 +454,22 @@ export interface components {
              * Format: uuid
              */
             id: string;
+        };
+        /**
+         * OverviewTotals
+         * @description Headline numbers. Reach is summed over own accounts only (own-only metric).
+         */
+        OverviewTotals: {
+            /** Own Posts */
+            own_posts: number;
+            /** Own Interactions */
+            own_interactions: number;
+            /** Own Reach */
+            own_reach: number;
+            /** Own Median Engagement Score */
+            own_median_engagement_score: number | null;
+            /** Competitor Median Engagement Score */
+            competitor_median_engagement_score: number | null;
         };
         /** Page[AccountRead] */
         Page_AccountRead_: {
@@ -1046,6 +1079,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountSummary"][];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_overview: {
+        parameters: {
+            query?: {
+                age?: components["schemas"]["SnapshotAge"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewTotals"];
                 };
             };
             /** @description Not Found */

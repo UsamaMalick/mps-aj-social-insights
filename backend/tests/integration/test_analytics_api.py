@@ -76,3 +76,36 @@ async def test_competitor_comparison_filters_by_platform_on_the_server(
 
     assert response.status_code == 200
     assert [row["account"]["handle"] for row in response.json()] == ["fb_rival"]
+
+
+async def _accounts_with_scores(db_session: AsyncSession) -> None:
+    for handle, is_own, likes in (("low", False, 10), ("high", False, 500), ("own", True, 100)):
+        account = await create_account(
+            db_session, handle=handle, is_own=is_own, followers_count=10_000
+        )
+        extra = {"reach": 1_000} if is_own else {}
+        post = await create_post(db_session, account)
+        await create_snapshot(db_session, post.id, likes=likes, comments=0, shares=0, **extra)
+
+
+async def test_summary_and_comparison_are_ranked_by_engagement_on_the_server(
+    db_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    await _accounts_with_scores(db_session)
+
+    for path in ("/api/v1/analytics/summary", "/api/v1/analytics/competitors"):
+        rows = (await db_client.get(path)).json()
+        assert [row["account"]["handle"] for row in rows] == ["high", "own", "low"]
+
+
+async def test_overview_totals_are_computed_on_the_server(
+    db_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    await _accounts_with_scores(db_session)
+
+    totals = (await db_client.get("/api/v1/analytics/overview")).json()
+
+    assert totals["own_posts"] == 1
+    assert totals["own_reach"] == 1_000
+    assert totals["own_median_engagement_score"] == 0.01
+    assert totals["competitor_median_engagement_score"] == (0.001 + 0.05) / 2

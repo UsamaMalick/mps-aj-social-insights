@@ -19,6 +19,7 @@ from app.modules.analytics.schemas import (
     CompetitorComparison,
     CompetitorFilters,
     ContentGap,
+    OverviewTotals,
     PatternFilters,
     SegmentPattern,
     TopPost,
@@ -50,25 +51,44 @@ class AnalyticsService:
         return accounts, scored
 
     async def account_summaries(self, age: SnapshotAge) -> list[AccountSummary]:
-        """Engagement totals per account; own-only metrics are filled for own accounts only."""
+        """Engagement totals per account, highest median engagement first. Own-only metrics
+        are filled for own accounts only."""
         accounts, scored = await self._load(age)
         by_account = _group_by_account(scored)
-        return [
+        summaries = [
             _summarize(account, by_account[account.id])
             for account in accounts.values()
             if by_account[account.id]
         ]
+        return sorted(summaries, key=_by_engagement)
+
+    async def overview(self, age: SnapshotAge) -> OverviewTotals:
+        """Headline numbers for own accounts vs competitors."""
+        summaries = await self.account_summaries(age)
+        own = [s for s in summaries if s.account.is_own]
+        rivals = [s for s in summaries if not s.account.is_own]
+        return OverviewTotals(
+            own_posts=sum(s.post_count for s in own),
+            own_interactions=sum(s.total_interactions for s in own),
+            own_reach=sum(s.total_reach or 0 for s in own),
+            own_median_engagement_score=_median_or_none([s.median_engagement_score for s in own]),
+            competitor_median_engagement_score=_median_or_none(
+                [s.median_engagement_score for s in rivals]
+            ),
+        )
 
     async def competitor_comparison(self, filters: CompetitorFilters) -> list[CompetitorComparison]:
-        """Accounts side by side (optionally one platform), using public metrics only."""
+        """Accounts side by side (optionally one platform), using public metrics only,
+        highest median engagement first."""
         accounts, scored = await self._load(filters.age)
         by_account = _group_by_account(scored)
-        return [
+        rows = [
             _compare(account, by_account[account.id])
             for account in accounts.values()
             if by_account[account.id]
             and (filters.platform is None or account.platform == filters.platform)
         ]
+        return sorted(rows, key=_by_engagement)
 
     async def top_posts(self, filters: TopPostFilters) -> list[TopPost]:
         """Highest-lift posts at the given age."""
@@ -106,6 +126,15 @@ class AnalyticsService:
             for dimension in GAP_DIMENSIONS
             for gap in content_gaps(scored, dimension)
         ]
+
+
+def _by_engagement(row: AccountSummary | CompetitorComparison) -> tuple[float, str, str]:
+    """Highest median engagement first; ties broken by name and platform for stable order."""
+    return (-row.median_engagement_score, row.account.display_name, row.account.platform)
+
+
+def _median_or_none(values: list[float]) -> float | None:
+    return float(median(values)) if values else None
 
 
 def _group_by_account(posts: list[ScoredPost]) -> defaultdict[UUID, list[ScoredPost]]:

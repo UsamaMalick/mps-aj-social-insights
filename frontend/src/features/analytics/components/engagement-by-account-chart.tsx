@@ -17,16 +17,15 @@ export function EngagementByAccountChart({
   rows,
   title = "Al Jazeera vs competitors",
 }: EngagementByAccountChartProps) {
-  const data: BarDatum[] = [...rows]
-    .sort((a, b) => b.median_engagement_score - a.median_engagement_score)
-    .map((row) => ({
-      label: `${formatAccountName(row.account.display_name, row.account.platform)}${
-        row.account.is_own ? " (own)" : ""
-      }`,
-      value: row.median_engagement_score,
-      color: row.account.is_own ? SERIES_COLORS.own : SERIES_COLORS.competitor,
-      note: row.account.is_own ? "Al Jazeera" : "Competitor",
-    }));
+  // Rows arrive ranked by engagement from the API.
+  const data: BarDatum[] = rows.map((row) => ({
+    label: `${formatAccountName(row.account.display_name, row.account.platform)}${
+      row.account.is_own ? " (own)" : ""
+    }`,
+    value: row.median_engagement_score,
+    color: row.account.is_own ? SERIES_COLORS.own : SERIES_COLORS.competitor,
+    note: row.account.is_own ? "Al Jazeera" : "Competitor",
+  }));
 
   return (
     <BarChartCard

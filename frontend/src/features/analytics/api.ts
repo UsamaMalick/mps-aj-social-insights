@@ -8,6 +8,10 @@ export async function getAccountSummaries() {
   return unwrap(api.GET("/api/v1/analytics/summary"));
 }
 
+export async function getOverviewTotals() {
+  return unwrap(api.GET("/api/v1/analytics/overview"));
+}
+
 export async function getCompetitorComparison(platform: Platform | undefined) {
   return unwrap(api.GET("/api/v1/analytics/competitors", { params: { query: { platform } } }));
 }

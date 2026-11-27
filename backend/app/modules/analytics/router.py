@@ -8,6 +8,7 @@ from app.modules.analytics.schemas import (
     CompetitorComparison,
     CompetitorFilters,
     ContentGap,
+    OverviewTotals,
     PatternFilters,
     SegmentPattern,
     SnapshotParams,
@@ -33,6 +34,15 @@ async def get_account_summaries(
     service: AnalyticsServiceDep, params: Annotated[SnapshotParams, Query()]
 ) -> list[AccountSummary]:
     return await service.account_summaries(params.age)
+
+
+@router.get(
+    "/overview", response_model=OverviewTotals, summary="Headline numbers: own vs competitors"
+)
+async def get_overview(
+    service: AnalyticsServiceDep, params: Annotated[SnapshotParams, Query()]
+) -> OverviewTotals:
+    return await service.overview(params.age)
 
 
 @router.get(

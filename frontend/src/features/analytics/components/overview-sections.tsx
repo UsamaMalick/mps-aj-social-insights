@@ -1,6 +1,6 @@
 import { EmptyState } from "@/components/data/empty-state";
 
-import { getAccountSummaries, getContentGaps, getTopPosts } from "../api";
+import { getAccountSummaries, getContentGaps, getOverviewTotals, getTopPosts } from "../api";
 import { ContentGapsCard } from "./content-gaps-card";
 import { EngagementByAccountChart } from "./engagement-by-account-chart";
 import { OverviewStats } from "./overview-stats";
@@ -9,7 +9,7 @@ import { TopPostsList } from "./top-posts-list";
 const TOP_POSTS_ON_OVERVIEW = 6;
 
 export async function OverviewSummarySection() {
-  const summaries = await getAccountSummaries();
+  const [summaries, totals] = await Promise.all([getAccountSummaries(), getOverviewTotals()]);
   if (summaries.length === 0) {
     return (
       <EmptyState
@@ -20,7 +20,7 @@ export async function OverviewSummarySection() {
   }
   return (
     <>
-      <OverviewStats summaries={summaries} />
+      <OverviewStats totals={totals} />
       <EngagementByAccountChart rows={summaries} />
     </>
   );

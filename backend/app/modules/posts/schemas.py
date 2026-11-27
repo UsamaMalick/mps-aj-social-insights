@@ -3,7 +3,8 @@ from uuid import UUID
 
 from pydantic import Field
 
-from app.shared.enums import Language, MediaType, Platform, SnapshotAge
+from app.modules.tagging.schemas import TagLabels
+from app.shared.enums import Language, MediaType, Platform, PostSort, SnapshotAge, StoryType
 from app.shared.schemas import BaseSchema
 
 
@@ -59,3 +60,47 @@ class PostMetricsRow(PublicMetrics, OwnOnlyMetrics):
     caption: str
     posted_at: datetime
     url: str
+
+
+SEARCH_MAX_LENGTH = 100
+
+
+class PostFilters(BaseSchema):
+    account_id: UUID | None = None
+    is_own: bool | None = None
+    platform: Platform | None = None
+    media_type: MediaType | None = None
+    language: Language | None = None
+    story_type: StoryType | None = None
+    q: str | None = Field(default=None, max_length=SEARCH_MAX_LENGTH, description="Caption search")
+    sort: PostSort = PostSort.NEWEST
+
+
+class PostQuery(BaseSchema):
+    """What the posts repository can filter on by itself (no other module's data)."""
+
+    account_ids: list[UUID] | None = None
+    post_ids: list[UUID] | None = None
+    platform: Platform | None = None
+    media_type: MediaType | None = None
+    language: Language | None = None
+    q: str | None = None
+
+
+class PostAccount(BaseSchema):
+    id: UUID
+    handle: str
+    display_name: str
+    is_own: bool
+    followers_count: int
+
+
+class PostListItem(PostRead):
+    account: PostAccount
+    latest_snapshot: MetricSnapshotRead | None
+    engagement_score: float | None
+    labels: TagLabels | None
+
+
+class PostDetail(PostListItem):
+    snapshots: list[MetricSnapshotRead]

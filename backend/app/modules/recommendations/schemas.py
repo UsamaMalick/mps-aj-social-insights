@@ -41,3 +41,7 @@ class RecommendationRead(RecommendationCreate):
 class RecommendationFilters(BaseSchema):
     status: RecommendationStatus | None = None
     category: RecommendationCategory | None = None
+
+
+class RecommendationStatusUpdate(BaseSchema):
+    status: RecommendationStatus

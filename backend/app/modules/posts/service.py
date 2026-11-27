@@ -5,7 +5,14 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.posts.repository import MetricSnapshotRepository, PostRepository
-from app.modules.posts.schemas import MetricSnapshotCreate, PostCreate, PostMetricsRow, PostRead
+from app.modules.posts.schemas import (
+    MetricSnapshotCreate,
+    MetricSnapshotRead,
+    PostCreate,
+    PostMetricsRow,
+    PostQuery,
+    PostRead,
+)
 from app.shared.enums import SnapshotAge
 
 # Keeps each multi-row INSERT well under PostgreSQL's 32,767 bind-parameter limit.
@@ -30,6 +37,23 @@ class PostService:
         for batch in batched(snapshots, UPSERT_BATCH_SIZE, strict=False):
             count += await self.snapshots.upsert_many(batch)
         return count
+
+    async def get_post(self, post_id: UUID) -> PostRead:
+        return PostRead.model_validate(await self.posts.get_or_raise(post_id))
+
+    async def search(self, query: PostQuery) -> list[PostRead]:
+        """Posts matching the query, newest first."""
+        return [PostRead.model_validate(post) for post in await self.posts.search(query)]
+
+    async def snapshots_by_post(
+        self, post_ids: Sequence[UUID]
+    ) -> dict[UUID, list[MetricSnapshotRead]]:
+        """Every snapshot of the given posts, youngest age first."""
+        grouped: dict[UUID, list[MetricSnapshotRead]] = {pid: [] for pid in post_ids}
+        for batch in batched(post_ids, UPSERT_BATCH_SIZE * 10, strict=False):
+            for snapshot in await self.snapshots.list_for_posts(batch):
+                grouped[snapshot.post_id].append(MetricSnapshotRead.model_validate(snapshot))
+        return grouped
 
     async def list_ids(self) -> list[UUID]:
         """Every post id, oldest post first."""

@@ -127,3 +127,9 @@ class AnalyticsScope(StrEnum):
     ALL = "all"
     OWN = "own"
     COMPETITORS = "competitors"
+
+
+class PostSort(StrEnum):
+    NEWEST = "newest"
+    OLDEST = "oldest"
+    MOST_ENGAGED = "most_engaged"

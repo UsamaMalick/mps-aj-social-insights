@@ -57,7 +57,8 @@ Mark a phase done by changing `[ ]` to `[x]` and adding one line of notes under 
   from the seed metadata so later phases still work
 - **Done when:** all posts have tags and tests pass using `FakeLLMClient`.
 
-## [ ] Phase 6 — API completion and types
+## [x] Phase 6 — API completion and types
+> Done: 14 endpoints with stable operation ids + documented error shape; posts filter/search/sort (in-memory engagement sort, fine at POC scale); `make gen-api` regenerates schema.d.ts.
 - Paginated, filterable endpoints for accounts, posts (with latest snapshot and tags),
   analytics, recommendations
 - `make gen-api` generates `frontend/src/lib/api/schema.d.ts`

@@ -10,6 +10,7 @@ from app.modules.posts.service import PostService
 from app.modules.tagging.repository import PostTagRepository
 from app.modules.tagging.schemas import PostTagCreate, TaggingResult, TagLabels
 from app.modules.tagging.taggers import LLMTagger, SeedRuleTagger, Tagger
+from app.shared.enums import StoryType
 
 logger = logging.getLogger(__name__)
 
@@ -53,3 +54,8 @@ class TaggingService:
         return {
             tag.post_id: TagLabels.model_validate(tag) for tag in await self.repository.list_all()
         }
+
+    async def post_ids_with_story_type(self, story_type: StoryType) -> list[UUID]:
+        return [
+            tag.post_id for tag in await self.repository.list_all() if tag.story_type == story_type
+        ]

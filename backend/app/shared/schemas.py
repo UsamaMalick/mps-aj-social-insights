@@ -1,5 +1,7 @@
 """Base Pydantic schemas and pagination."""
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 DEFAULT_PAGE_SIZE = 20
@@ -20,3 +22,15 @@ class Page[T](BaseSchema):
     total: int
     offset: int
     limit: int
+
+
+class ErrorDetail(BaseSchema):
+    code: str
+    message: str
+    details: Any = None
+
+
+class ErrorResponse(BaseSchema):
+    """The body of every error response."""
+
+    error: ErrorDetail

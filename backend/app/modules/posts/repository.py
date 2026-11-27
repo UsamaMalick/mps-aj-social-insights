@@ -1,11 +1,11 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.modules.posts.models import MetricSnapshot, Post
-from app.modules.posts.schemas import MetricSnapshotCreate, PostCreate
+from app.modules.posts.schemas import MetricSnapshotCreate, PostCreate, PostQuery
 from app.shared.enums import SnapshotAge
 from app.shared.repository import BaseRepository
 
@@ -51,6 +51,31 @@ class PostRepository(BaseRepository[Post]):
         )
         return [(post, snapshot) for post, snapshot in rows.all()]
 
+    async def search(self, query: PostQuery) -> Sequence[Post]:
+        """Posts matching the query, newest first."""
+        rows = await self.session.scalars(
+            self._filtered(query).order_by(Post.posted_at.desc(), Post.id)
+        )
+        return rows.all()
+
+    @staticmethod
+    def _filtered(query: PostQuery) -> Select[Post]:
+        stmt = select(Post)
+        if query.account_ids is not None:
+            stmt = stmt.where(Post.account_id.in_(query.account_ids))
+        if query.post_ids is not None:
+            stmt = stmt.where(Post.id.in_(query.post_ids))
+        if query.platform is not None:
+            stmt = stmt.where(Post.platform == query.platform)
+        if query.media_type is not None:
+            stmt = stmt.where(Post.media_type == query.media_type)
+        if query.language is not None:
+            stmt = stmt.where(Post.language == query.language)
+        if query.q:
+            escaped = query.q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            stmt = stmt.where(Post.caption.ilike(f"%{escaped}%", escape="\\"))
+        return stmt
+
 
 class MetricSnapshotRepository(BaseRepository[MetricSnapshot]):
     model = MetricSnapshot
@@ -67,6 +92,14 @@ class MetricSnapshotRepository(BaseRepository[MetricSnapshot]):
         )
         await self.session.execute(stmt)
         return len(snapshots)
+
+    async def list_for_posts(self, post_ids: Sequence[UUID]) -> Sequence[MetricSnapshot]:
+        rows = await self.session.scalars(
+            select(MetricSnapshot)
+            .where(MetricSnapshot.post_id.in_(post_ids))
+            .order_by(MetricSnapshot.post_id, MetricSnapshot.hours_since_post)
+        )
+        return rows.all()
 
     async def list_for_post(self, post_id: UUID) -> Sequence[MetricSnapshot]:
         rows = await self.session.scalars(

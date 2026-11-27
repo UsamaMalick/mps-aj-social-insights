@@ -135,6 +135,12 @@ Tokens live in `app/globals.css`; use them, never raw colours in components.
 - **No hard-coded UI text.** Every string is in `src/i18n/dictionaries/en.ts`; `ar.ts` must
   have the same keys and placeholders (`dictionaries.test.ts` enforces it). Fill
   placeholders with `interpolate()`; show API enum values with `enumLabel()`.
+  ESLint fails on words typed into JSX (`react/jsx-no-literals`) or into user-facing props
+  such as `aria-label`, `title`, `placeholder`, `label` (`no-restricted-syntax`).
+- **Every backend enum value needs a label in both languages.** The label tables are typed
+  against the generated API enums (`src/i18n/enum-labels.ts`), so after `make gen-api` a new
+  value (e.g. a story type) stops the build until English and Arabic labels exist;
+  `enum-labels.test.ts` names the missing value.
 - Server components get `{ locale, t, fmt }` from `getI18n()` (reads `next/root-params`).
   Client components and Server Actions can't read root params: pass `locale` as a prop.
 - Format numbers and dates only through `createFormat(locale)` (Arabic uses Western digits

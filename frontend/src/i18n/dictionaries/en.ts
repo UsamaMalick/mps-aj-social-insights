@@ -2,7 +2,10 @@
  * English interface text. The single source of every UI string; `ar.ts` must provide the
  * same keys (enforced by its `Dictionary` type and by `dictionaries.test.ts`).
  * Placeholders like `{count}` are filled with `interpolate()`.
+ * Label tables must cover every backend enum value (`EnumLabelContract`).
  */
+import type { EnumLabelContract } from "../enum-labels";
+
 export const en = {
   meta: {
     title: "AJ Social Insights",
@@ -290,5 +293,9 @@ export const en = {
     },
   },
 };
+
+// Compile-time guard: every backend enum value has a label here, and therefore in `ar.ts`
+// (typed as `Dictionary`). Fails to compile when `make gen-api` brings in a new value.
+const _labelsCoverBackendEnums: EnumLabelContract = en;
 
 export type Dictionary = typeof en;

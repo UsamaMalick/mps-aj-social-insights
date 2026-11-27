@@ -9,10 +9,15 @@ import { cn } from "@/lib/utils";
 
 interface NavLinkProps {
   href: string;
+  /**
+   * Unique per nav instance. Motion treats markers sharing a layoutId as ONE element and
+   * shows only the newest, so the desktop and (hidden) mobile navs must not share one.
+   */
+  markerId: string;
   children: ReactNode;
 }
 
-export function NavLink({ href, children }: NavLinkProps) {
+export function NavLink({ href, markerId, children }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -29,7 +34,7 @@ export function NavLink({ href, children }: NavLinkProps) {
       {isActive ? (
         // The one "you are here" marker in burnt orange; slides between sections.
         <motion.span
-          layoutId="nav-marker"
+          layoutId={markerId}
           className="bg-pop absolute inset-x-0 -bottom-px h-0.5"
           transition={{ type: "tween", duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
         />

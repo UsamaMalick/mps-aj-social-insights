@@ -20,7 +20,7 @@ export function Masthead() {
         </Link>
         <nav aria-label="Main" className="ms-auto hidden items-center gap-7 md:flex">
           {NAV_ITEMS.map((item) => (
-            <NavLink key={item.href} href={item.href}>
+            <NavLink key={item.href} href={item.href} markerId="nav-marker-desktop">
               {item.label}
             </NavLink>
           ))}
@@ -35,7 +35,7 @@ export function Masthead() {
         className="border-rule flex gap-6 overflow-x-auto border-t px-4 md:hidden"
       >
         {NAV_ITEMS.map((item) => (
-          <NavLink key={item.href} href={item.href}>
+          <NavLink key={item.href} href={item.href} markerId="nav-marker-mobile">
             {item.label}
           </NavLink>
         ))}

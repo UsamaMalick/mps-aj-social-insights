@@ -3,19 +3,15 @@
 import { animate, useInView, useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
 
-import { formatCompact, formatInteger, formatPercent } from "@/lib/format";
+import type { Locale } from "@/i18n/config";
+import { createFormat } from "@/lib/format";
 
-const FORMATTERS = {
-  compact: formatCompact,
-  integer: formatInteger,
-  percent: formatPercent,
-} as const;
-
-export type NumberFormat = keyof typeof FORMATTERS;
+export type NumberFormat = "compact" | "integer" | "percent";
 
 interface AnimatedNumberProps {
   value: number;
   format: NumberFormat;
+  locale: Locale;
 }
 
 /**
@@ -23,11 +19,11 @@ interface AnimatedNumberProps {
  * The final text is server-rendered, so there is no layout shift, and nothing moves when
  * the user prefers reduced motion.
  */
-export function AnimatedNumber({ value, format }: AnimatedNumberProps) {
+export function AnimatedNumber({ value, format, locale }: AnimatedNumberProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
   const reduceMotion = useReducedMotion();
-  const formatter = FORMATTERS[format];
+  const formatter = createFormat(locale)[format];
   const finalText = formatter(value);
 
   useEffect(() => {

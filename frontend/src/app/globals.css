@@ -54,9 +54,10 @@
   --color-input: var(--rule-strong);
   --color-ring: var(--pop);
 
-  /* Type: serif for headlines and big figures, sans for everything else. */
-  --font-sans: var(--font-schibsted), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-instrument-serif), var(--font-plex-arabic), ui-serif, Georgia, serif;
+  /* Type: serif for headlines and big figures, sans for everything else. The stacks are
+     swapped per language below (`--stack-*`), so Arabic pages lead with Arabic faces. */
+  --font-sans: var(--stack-sans);
+  --font-serif: var(--stack-serif);
   --font-heading: var(--font-serif);
 
   /* Fluid modular scale (1.25) */
@@ -121,6 +122,29 @@
   }
 }
 
+html {
+  --stack-sans:
+    var(--font-schibsted), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --stack-serif: var(--font-instrument-serif), var(--font-naskh-arabic), ui-serif, Georgia, serif;
+}
+
+/* Arabic pages: Arabic faces first, so Arabic text and its digits share one design. */
+html:lang(ar) {
+  --stack-sans:
+    var(--font-plex-arabic), var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+  --stack-serif: var(--font-naskh-arabic), var(--font-instrument-serif), ui-serif, serif;
+}
+
+/* Naskh letters reach higher and lower than Latin, so Arabic headlines need more leading.
+   Unlayered, so it wins over the utilities that set line-height. */
+:lang(ar) .text-display {
+  line-height: 1.32;
+}
+:lang(ar) .text-headline,
+:lang(ar) .text-title {
+  line-height: 1.45;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/60;
@@ -143,6 +167,12 @@
   h2,
   h3 {
     text-wrap: balance;
+  }
+  /* Arabic letters join, so letter-spacing (tracking, small-caps labels) breaks words apart;
+     it is never applied to Arabic text. Arabic also has no small caps. */
+  :lang(ar) {
+    letter-spacing: 0 !important;
+    font-variant-caps: normal !important;
   }
   ::selection {
     background: oklch(from var(--pop) l c h / 25%);

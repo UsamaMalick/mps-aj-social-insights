@@ -35,6 +35,12 @@ Filtering, search, sorting, ranking and pagination all run on the backend; the p
 displays results. Light and dark themes follow the system setting, with a toggle in the
 header.
 
+**English and Arabic.** The header toggle switches the whole interface between English
+(`/en/...`) and Arabic (`/ar/...`, right-to-left), keeping the current page, filters and
+open post. The choice is remembered, and first-time visitors get their browser's
+language. Recommendations are generated in both languages. Arabic interface text should be
+reviewed by a native editor before wider use.
+
 **Design.** An editorial "Newsroom Paper" system: cream paper and ink do almost all the
 work, and burnt orange is reserved for the single primary action, the active-section
 marker and focus rings. Instrument Serif for headlines and figures, Schibsted Grotesk for

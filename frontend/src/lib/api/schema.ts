@@ -659,6 +659,10 @@ export interface components {
             title: string;
             /** Suggestion */
             suggestion: string;
+            /** Title Ar */
+            title_ar?: string | null;
+            /** Suggestion Ar */
+            suggestion_ar?: string | null;
             category: components["schemas"]["RecommendationCategory"];
             evidence: components["schemas"]["Evidence"];
             source: components["schemas"]["RecommendationSource"];

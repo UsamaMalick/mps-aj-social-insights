@@ -21,8 +21,12 @@ export function toggleTheme(): Theme {
   return next;
 }
 
+interface ThemeToggleProps {
+  label: string;
+}
+
 /** The icon is chosen by CSS (dark: variant), so server and client render the same markup. */
-export function ThemeToggle() {
+export function ThemeToggle({ label }: ThemeToggleProps) {
   return (
     <button
       type="button"
@@ -31,7 +35,7 @@ export function ThemeToggle() {
     >
       <Moon className="size-4 dark:hidden" aria-hidden />
       <Sun className="hidden size-4 dark:block" aria-hidden />
-      <span className="sr-only">Switch between light and dark theme</span>
+      <span className="sr-only">{label}</span>
     </button>
   );
 }

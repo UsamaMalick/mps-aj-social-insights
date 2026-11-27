@@ -4,18 +4,19 @@ import { Suspense } from "react";
 import { SectionSkeleton } from "@/components/data/section-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { PostsView } from "@/features/posts/components/posts-view";
+import { getI18n } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Posts" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.posts.title };
+}
 
-export default function PostsPage({ searchParams }: PageProps<"/posts">) {
+export default async function PostsPage({ searchParams }: PageProps<"/[lang]/posts">) {
+  const { t } = await getI18n();
   return (
     <>
-      <PageHeader
-        meta="All accounts · metrics at the latest snapshot"
-        title="Posts"
-        description="Every post from Al Jazeera and the five competitors. Search, filter and open any post for its 24 and 72-hour numbers."
-      />
-      <Suspense fallback={<SectionSkeleton label="Loading posts" rows={10} />}>
+      <PageHeader meta={t.posts.meta} title={t.posts.title} description={t.posts.description} />
+      <Suspense fallback={<SectionSkeleton label={t.posts.loading} rows={10} />}>
         <PostsView searchParams={searchParams} />
       </Suspense>
     </>

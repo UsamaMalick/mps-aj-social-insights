@@ -5,19 +5,26 @@ import { SectionSkeleton } from "@/components/data/section-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { GenerateButton } from "@/features/recommendations/components/generate-button";
 import { RecommendationsView } from "@/features/recommendations/components/recommendations-view";
+import { getI18n } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Recommendations" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.recommendations.title };
+}
 
-export default function RecommendationsPage({ searchParams }: PageProps<"/recommendations">) {
+export default async function RecommendationsPage({
+  searchParams,
+}: PageProps<"/[lang]/recommendations">) {
+  const { locale, t } = await getI18n();
   return (
     <>
       <PageHeader
-        meta="How to tell stories · never which stories to cover"
-        title="Recommendations"
-        description="Each suggestion is built from the engagement numbers and shows its evidence. Accept what you want to try; editors make the final decision."
-        actions={<GenerateButton />}
+        meta={t.recommendations.meta}
+        title={t.recommendations.title}
+        description={t.recommendations.description}
+        actions={<GenerateButton locale={locale} />}
       />
-      <Suspense fallback={<SectionSkeleton label="Loading recommendations" rows={6} />}>
+      <Suspense fallback={<SectionSkeleton label={t.recommendations.loading} rows={6} />}>
         <RecommendationsView searchParams={searchParams} />
       </Suspense>
     </>

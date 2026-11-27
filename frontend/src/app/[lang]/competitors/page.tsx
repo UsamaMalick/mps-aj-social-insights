@@ -4,18 +4,23 @@ import { Suspense } from "react";
 import { SectionSkeleton } from "@/components/data/section-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { CompetitorsView } from "@/features/analytics/components/competitors-view";
+import { getI18n } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Competitors" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.competitors.title };
+}
 
-export default function CompetitorsPage({ searchParams }: PageProps<"/competitors">) {
+export default async function CompetitorsPage({ searchParams }: PageProps<"/[lang]/competitors">) {
+  const { t } = await getI18n();
   return (
     <>
       <PageHeader
-        meta="Public metrics only · measured 72 hours after posting"
-        title="Competitors"
-        description="Every account ranked by median engagement. Only likes, comments, shares and views are compared, because competitors don’t publish reach, saves or clicks."
+        meta={t.competitors.meta}
+        title={t.competitors.title}
+        description={t.competitors.description}
       />
-      <Suspense fallback={<SectionSkeleton label="Loading comparison" rows={12} />}>
+      <Suspense fallback={<SectionSkeleton label={t.competitors.loading} rows={12} />}>
         <CompetitorsView searchParams={searchParams} />
       </Suspense>
     </>

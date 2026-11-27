@@ -37,9 +37,9 @@ describe("posts search params", () => {
   it("builds short URLs that reset nothing implicitly", () => {
     const params = parsePostsSearchParams({ media: "reel", page: "2" });
 
-    expect(postsHref(params, { page: 1 })).toBe("/posts?media=reel");
-    expect(postsHref(params, { media: undefined, sort: "most_engaged" })).toBe(
-      "/posts?sort=most_engaged&page=2",
+    expect(postsHref("en", params, { page: 1 })).toBe("/en/posts?media=reel");
+    expect(postsHref("ar", params, { media: undefined, sort: "most_engaged" })).toBe(
+      "/ar/posts?sort=most_engaged&page=2",
     );
   });
 });

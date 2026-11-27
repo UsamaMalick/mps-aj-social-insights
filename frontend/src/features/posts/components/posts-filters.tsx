@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
 import type { AccountGroup } from "@/features/accounts/types";
+import type { Locale } from "@/i18n/config";
+import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
+import { interpolate } from "@/i18n/interpolate";
+import { accountName, enumLabel } from "@/i18n/labels";
 import { languageValues, mediaTypeValues, platformValues, storyTypeValues } from "@/lib/api/schema";
-import { formatAccountName, formatLabel } from "@/lib/format";
 
 import {
   accountFilterChanges,
@@ -18,27 +21,25 @@ import {
 import { type FilterOptionGroup, FilterSelect } from "./filter-select";
 import { SearchInput } from "./search-input";
 
-const LANGUAGE_LABELS: Record<string, string> = { ar: "Arabic", en: "English" };
-const GROUP_LABELS: Record<AccountGroup["key"], { heading: string; all: string }> = {
-  own: { heading: "Al Jazeera", all: "All Al Jazeera accounts" },
-  competitors: { heading: "Competitors", all: "All competitors" },
-};
+type EnumGroup = keyof Dictionary["enums"];
 
-function flat(values: readonly string[], labels?: Record<string, string>): FilterOptionGroup[] {
-  return [
-    { options: values.map((value) => ({ value, label: labels?.[value] ?? formatLabel(value) })) },
-  ];
+function options(t: Dictionary, group: EnumGroup, values: readonly string[]): FilterOptionGroup[] {
+  return [{ options: values.map((value) => ({ value, label: enumLabel(t, group, value) })) }];
 }
 
 /** Turns the backend's account groups into menu sections; no filtering or sorting here. */
-function accountMenu(groups: AccountGroup[]): FilterOptionGroup[] {
+function accountMenu(t: Dictionary, groups: AccountGroup[]): FilterOptionGroup[] {
+  const groupText = {
+    own: { heading: t.posts.groupOwn, all: t.posts.allOwnAccounts },
+    competitors: { heading: t.posts.groupCompetitors, all: t.posts.allCompetitors },
+  } satisfies Record<AccountGroup["key"], { heading: string; all: string }>;
   return [
-    { options: groups.map((g) => ({ value: g.key, label: GROUP_LABELS[g.key].all })) },
+    { options: groups.map((g) => ({ value: g.key, label: groupText[g.key].all })) },
     ...groups.map((g) => ({
-      label: GROUP_LABELS[g.key].heading,
+      label: groupText[g.key].heading,
       options: g.accounts.map((a) => ({
         value: a.id,
-        label: formatAccountName(a.display_name, a.platform),
+        label: accountName(t, a.display_name, a.platform),
       })),
     })),
   ];
@@ -47,9 +48,11 @@ function accountMenu(groups: AccountGroup[]): FilterOptionGroup[] {
 interface PostsFiltersProps {
   params: PostsSearchParams;
   accountGroups: AccountGroup[];
+  locale: Locale;
 }
 
-export function PostsFilters({ params, accountGroups }: PostsFiltersProps) {
+export function PostsFilters({ params, accountGroups, locale }: PostsFiltersProps) {
+  const t = getDictionary(locale);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const filterCount = activeFilterCount(params);
@@ -57,7 +60,7 @@ export function PostsFilters({ params, accountGroups }: PostsFiltersProps) {
   function apply(changes: Partial<PostsSearchParams>) {
     startTransition(() => {
       // replace (not push): filter tweaks shouldn't fill the browser history.
-      router.replace(postsHref(params, { ...changes, page: 1, post: undefined }), {
+      router.replace(postsHref(locale, params, { ...changes, page: 1, post: undefined }), {
         scroll: false,
       });
     });
@@ -65,51 +68,56 @@ export function PostsFilters({ params, accountGroups }: PostsFiltersProps) {
 
   return (
     <div className="space-y-3" aria-busy={isPending}>
-      <SearchInput query={params.q ?? ""} isPending={isPending} onSearch={(q) => apply({ q })} />
+      <SearchInput
+        query={params.q ?? ""}
+        isPending={isPending}
+        locale={locale}
+        onSearch={(q) => apply({ q })}
+      />
       <div className="flex flex-wrap items-center gap-2">
         <FilterSelect
           id="filter-account"
-          label="Account"
+          label={t.posts.filterAccount}
           value={accountFilterValue(params)}
-          allLabel="All accounts"
-          groups={accountMenu(accountGroups)}
+          allLabel={t.posts.allAccounts}
+          groups={accountMenu(t, accountGroups)}
           onChange={(value) => apply(accountFilterChanges(value))}
         />
         <FilterSelect
           id="filter-platform"
-          label="Platform"
+          label={t.posts.filterPlatform}
           value={params.platform}
-          allLabel="All platforms"
-          groups={flat(platformValues)}
+          allLabel={t.posts.allPlatforms}
+          groups={options(t, "platform", platformValues)}
           onChange={(platform) => apply({ platform: platform as PostsSearchParams["platform"] })}
         />
         <FilterSelect
           id="filter-media"
-          label="Format"
+          label={t.posts.filterFormat}
           value={params.media}
-          allLabel="All formats"
-          groups={flat(mediaTypeValues)}
+          allLabel={t.posts.allFormats}
+          groups={options(t, "media_type", mediaTypeValues)}
           onChange={(media) => apply({ media: media as PostsSearchParams["media"] })}
         />
         <FilterSelect
           id="filter-story"
-          label="Story"
+          label={t.posts.filterStory}
           value={params.story}
-          allLabel="All story types"
-          groups={flat(storyTypeValues)}
+          allLabel={t.posts.allStoryTypes}
+          groups={options(t, "story_type", storyTypeValues)}
           onChange={(story) => apply({ story: story as PostsSearchParams["story"] })}
         />
         <FilterSelect
           id="filter-language"
-          label="Language"
+          label={t.posts.filterLanguage}
           value={params.language}
-          allLabel="Both languages"
-          groups={flat(languageValues, LANGUAGE_LABELS)}
+          allLabel={t.posts.bothLanguages}
+          groups={options(t, "language", languageValues)}
           onChange={(language) => apply({ language: language as PostsSearchParams["language"] })}
         />
         {filterCount > 0 ? (
           <Link
-            href={postsHref(params, {
+            href={postsHref(locale, params, {
               account: undefined,
               ownership: undefined,
               platform: undefined,
@@ -120,9 +128,11 @@ export function PostsFilters({ params, accountGroups }: PostsFiltersProps) {
               post: undefined,
             })}
             scroll={false}
-            className="text-ink-2 hover:text-ink ms-1 text-sm underline decoration-rule-strong underline-offset-4"
+            className="text-ink-2 hover:text-ink decoration-rule-strong ms-1 text-sm underline underline-offset-4"
           >
-            Clear {filterCount} {filterCount === 1 ? "filter" : "filters"}
+            {filterCount === 1
+              ? t.posts.clearOneFilter
+              : interpolate(t.posts.clearFilters, { count: filterCount })}
           </Link>
         ) : null}
       </div>

@@ -44,8 +44,10 @@ Use these names everywhere. Do not invent other names for the project.
    and sample size behind it). An editor always makes the final decision.
 5. **Sample data must be visible as sample data.** When `DATA_SOURCE=seed`, the UI shows
    a "Sample data" banner on every page.
-6. **Arabic and English.** Captions can be in either language. UI text that shows
-   captions must render right-to-left correctly (`dir="auto"`).
+6. **Arabic and English.** Captions can be in either language and render with `dir="auto"`.
+   The whole interface is available in English and Arabic (`/en`, `/ar`); every UI string
+   comes from the dictionaries in `frontend/src/i18n/`, and recommendations are stored in
+   both languages.
 
 ---
 

@@ -1,7 +1,20 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import type { Locale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/dictionaries";
+import { direction } from "@/i18n/config";
+import type { I18n } from "@/i18n/server";
+import { createFormat } from "@/lib/format";
+
 import type { CompetitorComparison } from "../types";
+
+const i18n = (locale: Locale): I18n => ({
+  locale,
+  dir: direction(locale),
+  t: getDictionary(locale),
+  fmt: createFormat(locale),
+});
 import { CompetitorTable } from "./competitor-table";
 
 const ROW: CompetitorComparison = {
@@ -24,7 +37,7 @@ const ROW: CompetitorComparison = {
 
 describe("CompetitorTable", () => {
   it("shows public metrics only", () => {
-    render(<CompetitorTable rows={[ROW]} />);
+    render(<CompetitorTable rows={[ROW]} i18n={i18n("en")} />);
 
     const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
     expect(headers).toContain("Median likes");
@@ -33,10 +46,19 @@ describe("CompetitorTable", () => {
   });
 
   it("formats values for reading", () => {
-    render(<CompetitorTable rows={[ROW]} />);
+    render(<CompetitorTable rows={[ROW]} i18n={i18n("en")} />);
 
     expect(screen.getByText("Rival News")).toBeInTheDocument();
     expect(screen.getByText("0.42%")).toBeInTheDocument();
     expect(screen.getByText("60K")).toBeInTheDocument();
+  });
+
+  it("uses Arabic headers and still shows public metrics only", () => {
+    render(<CompetitorTable rows={[ROW]} i18n={i18n("ar")} />);
+
+    const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toContain("وسيط الإعجابات");
+    expect(headers).toContain("وسيط المشاهدات");
+    expect(headers.join(" ")).not.toMatch(/الوصول|النقرات|الحفظ/);
   });
 });

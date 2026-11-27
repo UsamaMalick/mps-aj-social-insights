@@ -24,6 +24,8 @@ const RECOMMENDATION: Recommendation = {
   prompt_version: "t",
   model: "template",
   created_at: "2026-11-27T10:00:00Z",
+  title_ar: "انشروا مزيدًا من منشورات الريلز",
+  suggestion_ar: "تحقق منشورات الريلز تفاعلًا أعلى.",
   evidence: {
     metric: "engagement_score",
     dimension: "media_type",
@@ -52,7 +54,7 @@ describe("ReviewList", () => {
     setRecommendationStatus.mockImplementationOnce(
       () => new Promise<void>((resolve) => (finishSaving = resolve)),
     );
-    render(<ReviewList recommendations={[RECOMMENDATION]} removeOnReview />);
+    render(<ReviewList recommendations={[RECOMMENDATION]} removeOnReview locale="en" />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /accept/i }));
@@ -74,9 +76,23 @@ describe("ReviewList", () => {
       <ReviewList
         recommendations={[{ ...RECOMMENDATION, status: "accepted" }]}
         removeOnReview={false}
+        locale="en"
       />,
     );
 
     expect(screen.queryByRole("button", { name: /accept/i })).not.toBeInTheDocument();
+  });
+
+  it("shows Arabic wording and Arabic toasts on Arabic pages", async () => {
+    render(<ReviewList recommendations={[RECOMMENDATION]} removeOnReview locale="ar" />);
+
+    expect(screen.getByText("انشروا مزيدًا من منشورات الريلز")).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /قبول/ }));
+    });
+
+    const [message, options] = toast.mock.calls[0] as [string, { action: { label: string } }];
+    expect(message).toBe("تم القبول: انشروا مزيدًا من منشورات الريلز");
+    expect(options.action.label).toBe("تراجع");
   });
 });

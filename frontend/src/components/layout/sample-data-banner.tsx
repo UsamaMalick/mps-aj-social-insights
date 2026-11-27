@@ -1,6 +1,7 @@
 import { unstable_rethrow } from "next/navigation";
 
 import { getMeta } from "@/features/system/api";
+import { getI18n } from "@/i18n/server";
 
 const SEED_DATA_SOURCE = "seed";
 
@@ -30,21 +31,15 @@ function Strip({ children, tone }: { children: React.ReactNode; tone: "info" | "
 }
 
 export async function SampleDataBanner() {
-  const dataSource = await loadDataSource();
+  const [dataSource, { t }] = await Promise.all([loadDataSource(), getI18n()]);
 
-  if (dataSource === null) {
-    return (
-      <Strip tone="alert">
-        The data service is unreachable, so the data source can&rsquo;t be confirmed.
-      </Strip>
-    );
-  }
+  if (dataSource === null) return <Strip tone="alert">{t.shell.apiUnreachable}</Strip>;
   if (dataSource !== SEED_DATA_SOURCE) return null;
 
   return (
     <Strip tone="info">
-      <span className="text-ink font-medium">Sample data.</span> Accounts, posts and numbers are
-      generated for this proof of concept, not taken from Instagram or Facebook.
+      <span className="text-ink font-medium">{t.shell.sampleDataLead}</span>{" "}
+      {t.shell.sampleDataBody}
     </Strip>
   );
 }

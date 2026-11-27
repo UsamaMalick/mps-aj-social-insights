@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 
 interface NavLinkProps {
   href: string;
+  /** Active only on this exact path (the home section), not on paths below it. */
+  exact?: boolean;
   /**
    * Unique per nav instance. Motion treats markers sharing a layoutId as ONE element and
    * shows only the newest, so the desktop and (hidden) mobile navs must not share one.
@@ -17,9 +19,9 @@ interface NavLinkProps {
   children: ReactNode;
 }
 
-export function NavLink({ href, markerId, children }: NavLinkProps) {
+export function NavLink({ href, exact = false, markerId, children }: NavLinkProps) {
   const pathname = usePathname();
-  const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = exact ? pathname === href : pathname.startsWith(href);
 
   return (
     <Link

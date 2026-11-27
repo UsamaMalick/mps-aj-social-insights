@@ -2,10 +2,16 @@
 
 import { Toaster as SonnerToaster } from "sonner";
 
-export function Toaster() {
+interface ToasterProps {
+  dir: "ltr" | "rtl";
+}
+
+export function Toaster({ dir }: ToasterProps) {
   return (
     <SonnerToaster
-      position="bottom-right"
+      dir={dir}
+      // Toasts sit at the reading end of the screen: bottom-right in English, bottom-left in Arabic.
+      position={dir === "rtl" ? "bottom-left" : "bottom-right"}
       // Long enough to reach "Undo" comfortably.
       duration={8000}
       toastOptions={{

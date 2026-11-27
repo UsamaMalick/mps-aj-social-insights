@@ -129,7 +129,23 @@ Tokens live in `app/globals.css`; use them, never raw colours in components.
 - Responsive by default (mobile → desktop). Tailwind utilities only; merge with `cn()`;
   inline `style` only for dynamic values (bar widths).
 
-## Language and accessibility
+## Language (English / Arabic)
+- Every route lives under `app/[lang]/` (`/en/...`, `/ar/...`). `src/proxy.ts` sends
+  language-less URLs to the saved choice (`locale` cookie) or the browser's language.
+- **No hard-coded UI text.** Every string is in `src/i18n/dictionaries/en.ts`; `ar.ts` must
+  have the same keys and placeholders (`dictionaries.test.ts` enforces it). Fill
+  placeholders with `interpolate()`; show API enum values with `enumLabel()`.
+- Server components get `{ locale, t, fmt }` from `getI18n()` (reads `next/root-params`).
+  Client components and Server Actions can't read root params: pass `locale` as a prop.
+- Format numbers and dates only through `createFormat(locale)` (Arabic uses Western digits
+  and places `%`/`×` after the number in reading order).
+- Use logical properties only (`ms/me/ps/pe/start/end`, `text-start/end`, `border-s/e`);
+  mirror direction-bearing icons with `rtl:rotate-180`. Never letter-space Arabic.
+- Arabic copy avoids counted-noun grammar ("عدد المنشورات: 136") and gender agreement with
+  inserted terms. Have a native Arabic editor review new Arabic text.
+- Internal links always include the language: `/${locale}/posts`.
+
+## Accessibility
 - Captions may be Arabic or English: render caption text with `dir="auto"`.
 - Use semantic HTML (`<main>`, `<nav>`, `<table>`), label every input, keep visible
   focus states, and never rely on color alone to convey meaning in charts.

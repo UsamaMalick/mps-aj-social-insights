@@ -7,23 +7,30 @@ import { api, ApiError, unwrap } from "@/lib/api/client";
 
 import type { RecommendationStatus } from "./types";
 
-const RECOMMENDATIONS_PATH = "/recommendations";
+// Server Actions can't read the [lang] root param, so the route is revalidated for every
+// language at once, and messages are composed by the client in the reader's language.
+const RECOMMENDATIONS_ROUTE = "/[lang]/recommendations";
 
 export interface GenerateState {
+  /** Raw API error message, or null; the client wraps it in localized text. */
   error: string | null;
+  failed: boolean;
   generated: number | null;
 }
 
 export async function generateRecommendations(_previous: GenerateState): Promise<GenerateState> {
   try {
     const created = await unwrap(api.POST("/api/v1/recommendations/generate"));
-    revalidatePath(RECOMMENDATIONS_PATH);
-    return { error: null, generated: created.length };
+    revalidatePath(RECOMMENDATIONS_ROUTE, "page");
+    return { error: null, failed: false, generated: created.length };
   } catch (error) {
     unstable_rethrow(error);
     console.error("Generating recommendations failed", error);
-    const message = error instanceof ApiError ? error.message : "Unexpected error";
-    return { error: `Could not generate recommendations: ${message}`, generated: null };
+    return {
+      error: error instanceof ApiError ? error.message : null,
+      failed: true,
+      generated: null,
+    };
   }
 }
 
@@ -37,5 +44,5 @@ export async function setRecommendationStatus(
       body: { status },
     }),
   );
-  revalidatePath(RECOMMENDATIONS_PATH);
+  revalidatePath(RECOMMENDATIONS_ROUTE, "page");
 }

@@ -1,23 +1,25 @@
 import { SegmentedLinks } from "@/components/navigation/segmented-links";
+import { enumLabel } from "@/i18n/labels";
+import type { I18n } from "@/i18n/server";
 import { platformValues } from "@/lib/api/schema";
-import { formatLabel } from "@/lib/format";
 
 import type { Platform } from "../types";
 
 interface PlatformTabsProps {
   basePath: string;
   active: Platform | undefined;
+  i18n: I18n;
 }
 
-export function PlatformTabs({ basePath, active }: PlatformTabsProps) {
+export function PlatformTabs({ basePath, active, i18n: { t } }: PlatformTabsProps) {
   return (
     <SegmentedLinks
       id="platform"
-      label="Platform"
+      label={t.competitors.platformLabel}
       items={[
-        { label: "All platforms", href: basePath, active: active === undefined },
+        { label: t.competitors.allPlatforms, href: basePath, active: active === undefined },
         ...platformValues.map((platform) => ({
-          label: formatLabel(platform),
+          label: enumLabel(t, "platform", platform),
           href: `${basePath}?platform=${platform}`,
           active: active === platform,
         })),

@@ -1,6 +1,7 @@
 import { EmptyState } from "@/components/data/empty-state";
 import { Figure } from "@/components/data/figure";
-import { formatPercent } from "@/lib/format";
+import { interpolate } from "@/i18n/interpolate";
+import { getI18n } from "@/i18n/server";
 
 import {
   getAccountSummaries,
@@ -18,44 +19,48 @@ import { WhatsWorking } from "./whats-working";
 const STANDOUT_POSTS = 6;
 
 export async function BriefingLeadSection() {
-  const [totals, highlights] = await Promise.all([getOverviewTotals(), getHighlights()]);
+  const [{ locale, t, fmt }, totals, highlights] = await Promise.all([
+    getI18n(),
+    getOverviewTotals(),
+    getHighlights(),
+  ]);
   if (totals.own_posts === 0) {
-    return (
-      <EmptyState
-        title="Nothing to brief on yet"
-        description="Load the sample dataset with `make seed`, then refresh this page."
-      />
-    );
+    return <EmptyState title={t.briefing.emptyTitle} description={t.briefing.emptyBody} />;
   }
   return (
-    <section aria-label="Summary" className="space-y-10">
+    <section aria-label={t.briefing.summaryLabel} className="space-y-10">
       <h1 className="font-serif text-display max-w-4xl tracking-tight text-balance">
-        {briefingHeadline(totals, highlights)}
+        {briefingHeadline(locale, t, fmt, totals, highlights)}
       </h1>
-      <div className="border-rule grid gap-8 border-y py-8 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-rule">
+      <div className="border-rule sm:divide-rule grid gap-8 border-y py-8 sm:grid-cols-3 sm:gap-0 sm:divide-x">
         <div className="sm:pe-8">
           <Figure
-            label="Al Jazeera posts"
+            label={t.briefing.postsLabel}
             value={totals.own_posts}
             format="integer"
-            note="Instagram and Facebook, last 90 days."
+            locale={locale}
+            note={t.briefing.postsNote}
           />
         </div>
         <div className="sm:px-8">
           <Figure
-            label="Median engagement"
+            label={t.briefing.engagementLabel}
             value={totals.own_median_engagement_score}
             format="percent"
-            aside={<>vs {formatPercent(totals.competitor_median_engagement_score)} competitors</>}
-            note="(likes + comments + shares) ÷ followers, 72h after posting."
+            locale={locale}
+            aside={interpolate(t.briefing.engagementAside, {
+              value: fmt.percent(totals.competitor_median_engagement_score),
+            })}
+            note={t.briefing.engagementNote}
           />
         </div>
         <div className="sm:ps-8">
           <Figure
-            label="Reach"
+            label={t.briefing.reachLabel}
             value={totals.own_reach}
             format="compact"
-            note="Own accounts only. Competitors don’t publish reach."
+            locale={locale}
+            note={t.briefing.reachNote}
           />
         </div>
       </div>
@@ -64,19 +69,25 @@ export async function BriefingLeadSection() {
 }
 
 export async function BriefingAccountsSection() {
-  return <RankedAccounts rows={await getAccountSummaries()} />;
+  const [i18n, rows] = await Promise.all([getI18n(), getAccountSummaries()]);
+  return <RankedAccounts rows={rows} i18n={i18n} />;
 }
 
 export async function BriefingInsightsSection() {
-  const [highlights, gaps] = await Promise.all([getHighlights(), getContentGaps()]);
+  const [i18n, highlights, gaps] = await Promise.all([
+    getI18n(),
+    getHighlights(),
+    getContentGaps(),
+  ]);
   return (
     <div className="space-y-8">
-      <WhatsWorking highlights={highlights} />
-      <ContentGapNote gaps={gaps} />
+      <WhatsWorking highlights={highlights} i18n={i18n} />
+      <ContentGapNote gaps={gaps} i18n={i18n} />
     </div>
   );
 }
 
 export async function BriefingTopPostsSection() {
-  return <TopPostsList posts={await getTopPosts(STANDOUT_POSTS)} />;
+  const [i18n, posts] = await Promise.all([getI18n(), getTopPosts(STANDOUT_POSTS)]);
+  return <TopPostsList posts={posts} i18n={i18n} />;
 }

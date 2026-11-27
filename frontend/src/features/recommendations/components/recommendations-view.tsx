@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/data/empty-state";
+import { getI18n } from "@/i18n/server";
 
 import { listRecommendations } from "../api";
 import { parseStatus } from "../search-params";
@@ -10,23 +11,29 @@ interface RecommendationsViewProps {
 }
 
 export async function RecommendationsView({ searchParams }: RecommendationsViewProps) {
+  const i18n = await getI18n();
+  const { t } = i18n;
   const status = parseStatus(await searchParams);
   const recommendations = await listRecommendations(status);
 
   return (
     <div className="space-y-8">
-      <StatusTabs active={status} />
+      <StatusTabs active={status} i18n={i18n} />
       {recommendations.length === 0 ? (
         <EmptyState
-          title={status === "new" ? "No new recommendations" : "Nothing here"}
+          title={
+            status === "new" ? t.recommendations.emptyNewTitle : t.recommendations.emptyOtherTitle
+          }
           description={
-            status === "new"
-              ? "Generate recommendations to turn the latest engagement patterns into suggestions."
-              : "Recommendations you accept or dismiss appear here."
+            status === "new" ? t.recommendations.emptyNewBody : t.recommendations.emptyOtherBody
           }
         />
       ) : (
-        <ReviewList recommendations={recommendations} removeOnReview={status === "new"} />
+        <ReviewList
+          recommendations={recommendations}
+          removeOnReview={status === "new"}
+          locale={i18n.locale}
+        />
       )}
     </div>
   );

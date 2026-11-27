@@ -1,11 +1,13 @@
+/** Masthead sections. Labels live in the dictionaries (`nav.<key>`). */
 export interface NavItem {
-  href: string;
-  label: string;
+  key: "briefing" | "posts" | "competitors" | "recommendations";
+  /** Path after the language prefix. */
+  path: string;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/", label: "Briefing" },
-  { href: "/posts", label: "Posts" },
-  { href: "/competitors", label: "Competitors" },
-  { href: "/recommendations", label: "Recommendations" },
+  { key: "briefing", path: "" },
+  { key: "posts", path: "/posts" },
+  { key: "competitors", path: "/competitors" },
+  { key: "recommendations", path: "/recommendations" },
 ];

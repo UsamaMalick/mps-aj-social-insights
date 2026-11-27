@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import type { Locale } from "@/i18n/config";
+
 import {
   accountGroupKeyValues,
   languageValues,
@@ -78,6 +80,7 @@ export function toPostsQuery(params: PostsSearchParams) {
 
 /** A posts URL with some params changed; defaults are left out to keep URLs short. */
 export function postsHref(
+  locale: Locale,
   params: PostsSearchParams,
   changes: Partial<Record<keyof PostsSearchParams, string | number | undefined>>,
 ): string {
@@ -90,7 +93,8 @@ export function postsHref(
     search.set(key, String(value));
   }
   const query = search.toString();
-  return query ? `/posts?${query}` : "/posts";
+  const path = `/${locale}/posts`;
+  return query ? `${path}?${query}` : path;
 }
 
 export const SEARCH_DEBOUNCE_MS = 350;

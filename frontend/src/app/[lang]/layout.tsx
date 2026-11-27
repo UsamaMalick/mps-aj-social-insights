@@ -1,22 +1,25 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_Arabic, Instrument_Serif, Schibsted_Grotesk } from "next/font/google";
+import {
+  IBM_Plex_Sans_Arabic,
+  Instrument_Serif,
+  Noto_Naskh_Arabic,
+  Schibsted_Grotesk,
+} from "next/font/google";
 import { Suspense } from "react";
 
 import { InlineScript } from "@/components/layout/inline-script";
 import { Masthead } from "@/components/layout/masthead";
 import { SampleDataBanner } from "@/components/layout/sample-data-banner";
 import { Toaster } from "@/components/layout/toaster";
-import { APP_DESCRIPTION, APP_TITLE } from "@/config/constants";
 import { THEME_BOOT_SCRIPT } from "@/config/theme";
+import { LOCALES } from "@/i18n/config";
+import { getI18n } from "@/i18n/server";
 import { cn } from "@/lib/utils";
 
-import "./globals.css";
+import "../globals.css";
 
 // Schibsted Grotesk was drawn for a news publisher: neutral enough for data, with character.
-const schibsted = Schibsted_Grotesk({
-  variable: "--font-schibsted",
-  subsets: ["latin"],
-});
+const schibsted = Schibsted_Grotesk({ variable: "--font-schibsted", subsets: ["latin"] });
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   subsets: ["latin"],
@@ -27,18 +30,38 @@ const plexArabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic"],
   weight: ["400", "500", "600"],
 });
+// Arabic counterpart of the editorial serif, for headlines and figures in Arabic.
+const naskhArabic = Noto_Naskh_Arabic({
+  variable: "--font-naskh-arabic",
+  subsets: ["arabic"],
+  weight: ["400", "500", "600"],
+});
 
-export const metadata: Metadata = {
-  title: { default: APP_TITLE, template: `%s · ${APP_TITLE}` },
-  description: APP_DESCRIPTION,
-};
+export function generateStaticParams() {
+  return LOCALES.map((lang) => ({ lang }));
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return {
+    title: { default: t.meta.title, template: `%s · ${t.meta.title}` },
+    description: t.meta.description,
+  };
+}
+
+export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
+  const { locale, dir } = await getI18n();
   return (
     <html
-      lang="en"
+      lang={locale}
+      dir={dir}
       suppressHydrationWarning
-      className={cn(schibsted.variable, instrumentSerif.variable, plexArabic.variable)}
+      className={cn(
+        schibsted.variable,
+        instrumentSerif.variable,
+        plexArabic.variable,
+        naskhArabic.variable,
+      )}
     >
       <head>
         <InlineScript html={THEME_BOOT_SCRIPT} />
@@ -51,7 +74,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="mx-auto max-w-7xl space-y-10 px-4 pt-8 pb-20 md:px-8 md:pt-12">
           {children}
         </main>
-        <Toaster />
+        <Toaster dir={dir} />
       </body>
     </html>
   );

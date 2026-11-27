@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { getDictionary } from "@/i18n/dictionaries";
+import { createFormat } from "@/lib/format";
+
 import { briefingHeadline } from "./briefing";
 import type { OverviewTotals, SegmentPattern } from "./types";
 
@@ -27,9 +30,12 @@ function highlight(dimension: SegmentPattern["dimension"], segment: string): Seg
   };
 }
 
+const headline = (locale: "en" | "ar", totals: OverviewTotals, highlights: SegmentPattern[]) =>
+  briefingHeadline(locale, getDictionary(locale), createFormat(locale), totals, highlights);
+
 describe("briefingHeadline", () => {
   it("leads with who is ahead and the two strongest wins, in API order", () => {
-    const text = briefingHeadline(TOTALS, [
+    const text = headline("en", TOTALS, [
       highlight("media_type", "reel"),
       highlight("language", "ar"),
       highlight("time_block", "16-20"),
@@ -41,7 +47,7 @@ describe("briefingHeadline", () => {
   });
 
   it("says Al Jazeera leads when it does", () => {
-    const text = briefingHeadline({ ...TOTALS, own_median_engagement_score: 0.008 }, [
+    const text = headline("en", { ...TOTALS, own_median_engagement_score: 0.008 }, [
       highlight("story_type", "human_interest"),
     ]);
 
@@ -50,8 +56,20 @@ describe("briefingHeadline", () => {
     );
   });
 
+  it("writes the Arabic headline from the same numbers", () => {
+    const text = headline("ar", TOTALS, [
+      highlight("media_type", "reel"),
+      highlight("story_type", "human_interest"),
+    ]);
+
+    expect(text).toContain("المنافسون يتفوّقون على الجزيرة في التفاعل");
+    expect(text).toContain("0.60");
+    expect(text).toContain("0.50");
+    expect(text).toContain("الأوضح نجاحًا: مقاطع الريلز والقصص الإنسانية.");
+  });
+
   it("copes with no data", () => {
     const empty = { ...TOTALS, own_median_engagement_score: null };
-    expect(briefingHeadline(empty, [])).toBe("");
+    expect(headline("en", empty, [])).toBe("");
   });
 });

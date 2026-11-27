@@ -10,7 +10,7 @@ describe("SearchInput", () => {
 
   it("searches once, after the user stops typing", () => {
     const onSearch = vi.fn();
-    render(<SearchInput query="" isPending={false} onSearch={onSearch} />);
+    render(<SearchInput query="" isPending={false} locale="en" onSearch={onSearch} />);
     const input = screen.getByLabelText("Search captions");
 
     for (const text of ["c", "ce", "cea", "ceasefire"]) {
@@ -26,7 +26,7 @@ describe("SearchInput", () => {
 
   it("clearing the box removes the search", () => {
     const onSearch = vi.fn();
-    render(<SearchInput query="ceasefire" isPending={false} onSearch={onSearch} />);
+    render(<SearchInput query="ceasefire" isPending={false} locale="en" onSearch={onSearch} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
     act(() => vi.advanceTimersByTime(SEARCH_DEBOUNCE_MS));
@@ -36,7 +36,7 @@ describe("SearchInput", () => {
 
   it("does not search again for whitespace-only changes", () => {
     const onSearch = vi.fn();
-    render(<SearchInput query="ceasefire" isPending={false} onSearch={onSearch} />);
+    render(<SearchInput query="ceasefire" isPending={false} locale="en" onSearch={onSearch} />);
 
     fireEvent.change(screen.getByLabelText("Search captions"), {
       target: { value: "ceasefire  " },
@@ -48,11 +48,19 @@ describe("SearchInput", () => {
 
   it("follows the URL when the search is cleared elsewhere", () => {
     const { rerender } = render(
-      <SearchInput query="ceasefire" isPending={false} onSearch={vi.fn()} />,
+      <SearchInput query="ceasefire" isPending={false} locale="en" onSearch={vi.fn()} />,
     );
 
-    rerender(<SearchInput query="" isPending={false} onSearch={vi.fn()} />);
+    rerender(<SearchInput query="" isPending={false} locale="en" onSearch={vi.fn()} />);
 
     expect(screen.getByLabelText("Search captions")).toHaveValue("");
+  });
+});
+
+describe("SearchInput (Arabic)", () => {
+  it("labels the search box in Arabic", () => {
+    render(<SearchInput query="" isPending={false} locale="ar" onSearch={vi.fn()} />);
+
+    expect(screen.getByLabelText("البحث في النصوص")).toBeInTheDocument();
   });
 });

@@ -108,10 +108,3 @@ class MetricSnapshotRepository(BaseRepository[MetricSnapshot]):
             .order_by(MetricSnapshot.hours_since_post)
         )
         return rows.all()
-
-    async def get_at_age(self, post_id: UUID, age: SnapshotAge) -> MetricSnapshot | None:
-        return await self.session.scalar(
-            select(MetricSnapshot).where(
-                MetricSnapshot.post_id == post_id, MetricSnapshot.hours_since_post == age
-            )
-        )

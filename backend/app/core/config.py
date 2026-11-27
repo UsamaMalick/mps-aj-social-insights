@@ -30,7 +30,6 @@ class Settings(BaseSettings):
 
     anthropic_api_key: SecretStr | None = None
     llm_model: str = "claude-opus-5"
-    llm_max_tokens: int = 2048
 
     @property
     def llm_enabled(self) -> bool:

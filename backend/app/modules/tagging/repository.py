@@ -40,10 +40,6 @@ class PostTagRepository(BaseRepository[PostTag]):
     async def get_for_post(self, post_id: UUID) -> PostTag | None:
         return await self.session.scalar(select(PostTag).where(PostTag.post_id == post_id))
 
-    async def list_for_posts(self, post_ids: Sequence[UUID]) -> Sequence[PostTag]:
-        rows = await self.session.scalars(select(PostTag).where(PostTag.post_id.in_(post_ids)))
-        return rows.all()
-
     async def tagged_post_ids(self) -> set[UUID]:
         rows = await self.session.scalars(select(PostTag.post_id))
         return set(rows.all())

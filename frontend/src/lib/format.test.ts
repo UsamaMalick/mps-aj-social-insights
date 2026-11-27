@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  formatCompact,
-  formatDate,
-  formatHour,
-  formatLabel,
-  formatLift,
-  formatPercent,
-} from "./format";
+import { formatCompact, formatDate, formatLabel, formatLift, formatPercent } from "./format";
 
 describe("format", () => {
   it("formats large numbers compactly", () => {
@@ -28,10 +21,6 @@ describe("format", () => {
 
   it("turns enum values into readable labels", () => {
     expect(formatLabel("human_interest")).toBe("Human interest");
-  });
-
-  it("pads hours", () => {
-    expect(formatHour(7)).toBe("07:00 UTC");
   });
 
   it("shows a dash for missing values", () => {

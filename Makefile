@@ -16,8 +16,8 @@ JOB := $(COMPOSE) exec backend
 endif
 
 .DEFAULT_GOAL := help
-.PHONY: help install up down logs dev-api dev-web db test-db migrate migration seed tag \
-        analyze gen-api lint typecheck test test-api test-web check format
+.PHONY: help install up down logs dev-api dev-web db test-db migrate migration seed ingest \
+        tag analyze gen-api lint typecheck test test-api test-web check format
 
 help: ## Show this help
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -56,6 +56,9 @@ migration: db ## Autogenerate a migration: make migration m="message" (review it
 
 seed: ## Generate deterministic sample data into the database
 	$(JOB) python -m app.cli seed
+
+ingest: ## Pull posts from the configured DATA_SOURCE (seed now, meta later)
+	$(JOB) python -m app.cli ingest
 
 tag: ## Run AI tagging on untagged posts
 	$(JOB) python -m app.cli tag

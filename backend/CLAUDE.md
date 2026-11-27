@@ -153,7 +153,7 @@ async def get_post(post_id: UUID, service: PostServiceDep) -> PostRead:
 | `posts`            | account_id, platform, external_id, media_type, caption, language, posted_at, url |
 | `metric_snapshots` | post_id, hours_since_post, likes, comments, shares, views, saves*, reach*, clicks* |
 | `post_tags`        | post_id, topic, region, story_type, hook_style, tone, prompt_version, model |
-| `recommendations`  | title, suggestion, format, evidence (JSONB), status, created_at        |
+| `recommendations`  | title, suggestion, category (format/style/hook/timing/language), evidence (JSONB), status, source, prompt_version, model, created_at |
 
 `*` own accounts only.
 

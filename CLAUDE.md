@@ -109,19 +109,27 @@ Run everything through `make` so commands stay the same for everyone (and for Cl
 
 | Command            | What it does                                              |
 |--------------------|-----------------------------------------------------------|
-| `make up`          | Start postgres, backend, frontend with docker compose     |
+| `make help`        | List every target                                         |
+| `make install`     | Install backend (uv) and frontend (pnpm) deps on the host |
+| `make up` / `make down` | Start / stop postgres, backend, frontend with docker compose |
+| `make logs`        | Follow service logs                                       |
 | `make dev-api`     | Run backend locally with reload                           |
 | `make dev-web`     | Run frontend locally                                      |
 | `make migrate`     | Apply Alembic migrations                                  |
 | `make migration m="msg"` | Autogenerate a new migration (review it before committing) |
 | `make seed`        | Generate deterministic sample data into the database      |
+| `make ingest`      | Pull posts from the configured `DATA_SOURCE`              |
 | `make tag`         | Run AI tagging on untagged posts                          |
 | `make analyze`     | Recompute engagement scores and patterns                  |
 | `make gen-api`     | Regenerate frontend API types from backend OpenAPI        |
 | `make lint`        | Lint + format check, both apps                            |
 | `make typecheck`   | mypy (backend) + tsc (frontend)                           |
 | `make test`        | All tests, both apps                                      |
+| `make format`      | Auto-format both apps                                     |
 | `make check`       | lint + typecheck + test (run before declaring work done)  |
+
+`migrate`, `seed`, `ingest`, `tag` and `analyze` run inside the backend container by default;
+add `LOCAL=1` (e.g. `make seed LOCAL=1`) to run them on the host with uv.
 
 ---
 

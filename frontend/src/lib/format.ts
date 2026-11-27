@@ -21,14 +21,6 @@ const dateFormatter = new Intl.DateTimeFormat(DATE_LOCALE, {
   year: "numeric",
   timeZone: "UTC",
 });
-const dateTimeFormatter = new Intl.DateTimeFormat(DATE_LOCALE, {
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: "UTC",
-  timeZoneName: "short",
-});
 
 const EMPTY = "—";
 
@@ -63,21 +55,11 @@ export function formatDate(value: string | null | undefined): string {
   return value ? dateFormatter.format(new Date(value)) : EMPTY;
 }
 
-/** ISO string → "3 Mar, 14:00 UTC" */
-export function formatDateTime(value: string | null | undefined): string {
-  return value ? dateTimeFormatter.format(new Date(value)) : EMPTY;
-}
-
 /** "human_interest" → "Human interest" */
 export function formatLabel(value: string | null | undefined): string {
   if (!value) return EMPTY;
   const spaced = value.replaceAll("_", " ");
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
-}
-
-/** 0–23 → "14:00 UTC" */
-export function formatHour(hour: number): string {
-  return `${String(hour).padStart(2, "0")}:00 UTC`;
 }
 
 /** "Al Jazeera", "instagram" → "Al Jazeera · Instagram" */

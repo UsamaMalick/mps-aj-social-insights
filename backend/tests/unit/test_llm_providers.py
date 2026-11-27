@@ -101,6 +101,6 @@ def test_openai_schema_drops_unsupported_keywords_but_keeps_fields() -> None:
     schema = openai_strict_schema(strict_json_schema(RecommendationDrafts))
 
     item = schema["properties"]["items"]["items"]
-    assert set(item["properties"]) == {"ref", "title", "suggestion"}
+    assert set(item["properties"]) == {"ref", "title", "suggestion", "title_ar", "suggestion_ar"}
     assert "maxLength" not in item["properties"]["title"]
     assert item["additionalProperties"] is False

@@ -33,6 +33,8 @@ class Evidence(BaseSchema):
 class RecommendationCreate(BaseSchema):
     title: str = Field(min_length=1, max_length=200)
     suggestion: str = Field(min_length=1)
+    title_ar: str | None = Field(default=None, min_length=1, max_length=200)
+    suggestion_ar: str | None = Field(default=None, min_length=1)
     category: RecommendationCategory
     evidence: Evidence
     source: RecommendationSource
@@ -56,11 +58,14 @@ class RecommendationStatusUpdate(BaseSchema):
 
 
 class RecommendationDraft(BaseSchema):
-    """One item of the LLM's output: wording only, tied to an evidence item by `ref`."""
+    """One item of the LLM's output: wording only (English and Arabic), tied to an evidence
+    item by `ref`."""
 
     ref: int
     title: str = Field(min_length=1, max_length=120)
     suggestion: str = Field(min_length=1, max_length=600)
+    title_ar: str = Field(min_length=1, max_length=120)
+    suggestion_ar: str = Field(min_length=1, max_length=700)
 
 
 class RecommendationDrafts(BaseSchema):

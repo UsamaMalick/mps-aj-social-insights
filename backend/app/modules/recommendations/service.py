@@ -10,6 +10,7 @@ from app.modules.recommendations.evidence import EvidenceItem, build_evidence
 from app.modules.recommendations.prompts import PROMPT_VERSION, SYSTEM_PROMPT, build_prompt
 from app.modules.recommendations.repository import RecommendationRepository
 from app.modules.recommendations.schemas import (
+    Evidence,
     RecommendationCreate,
     RecommendationDraft,
     RecommendationDrafts,
@@ -51,6 +52,7 @@ class RecommendationService:
         )
 
         await self.repository.delete_with_status(RecommendationStatus.NEW)
+        await self._backfill_arabic()
         created = []
         for ref, item in enumerate(items):
             draft = llm_drafts.get(ref)
@@ -61,6 +63,16 @@ class RecommendationService:
             extra={"count": len(created), "from_llm": len(llm_drafts)},
         )
         return [RecommendationRead.model_validate(row) for row in created]
+
+    async def _backfill_arabic(self) -> None:
+        """Give reviewed recommendations from before Arabic support an Arabic template text."""
+        for row in await self.repository.list_missing_arabic():
+            evidence = Evidence.model_validate(row.evidence)
+            item = EvidenceItem(
+                category=row.category, evidence=evidence, is_gap=evidence.own_share is not None
+            )
+            draft = template_draft(0, item)
+            row.title_ar, row.suggestion_ar = draft.title_ar, draft.suggestion_ar
 
     async def _llm_drafts(
         self, llm: LLMClient, items: list[EvidenceItem]
@@ -129,6 +141,8 @@ def _to_create(
     return RecommendationCreate(
         title=draft.title,
         suggestion=draft.suggestion,
+        title_ar=draft.title_ar,
+        suggestion_ar=draft.suggestion_ar,
         category=item.category,
         evidence=item.evidence,
         source=source,

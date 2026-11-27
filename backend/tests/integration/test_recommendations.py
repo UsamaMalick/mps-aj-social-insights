@@ -27,8 +27,22 @@ def _segments(recs: list[RecommendationRead]) -> set[tuple[PatternDimension, str
 def _word_every_finding(prompt: str) -> str:
     refs = [int(ref) for ref in REF.findall(prompt)]
     return json.dumps(
-        {"items": [{"ref": r, "title": f"LLM title {r}", "suggestion": "Try it."} for r in refs]}
+        {
+            "items": [
+                {
+                    "ref": r,
+                    "title": f"LLM title {r}",
+                    "suggestion": "Try it.",
+                    "title_ar": f"عنوان {r}",
+                    "suggestion_ar": "جرّبوه.",
+                }
+                for r in refs
+            ]
+        }
     )
+
+
+ARABIC_LETTER = re.compile(r"[\u0600-\u06FF]")
 
 
 async def test_template_recommendations_cover_every_planted_pattern(
@@ -89,7 +103,19 @@ async def test_llm_writes_wording_but_numbers_come_from_analytics(
 
 async def test_items_the_llm_skips_fall_back_to_templates(seeded_session: AsyncSession) -> None:
     only_first = FakeLLMClient(
-        lambda _: json.dumps({"items": [{"ref": 0, "title": "T", "suggestion": "S"}]})
+        lambda _: json.dumps(
+            {
+                "items": [
+                    {
+                        "ref": 0,
+                        "title": "T",
+                        "suggestion": "S",
+                        "title_ar": "ع",
+                        "suggestion_ar": "ن",
+                    }
+                ]
+            }
+        )
     )
 
     recs = await RecommendationService(seeded_session).generate(only_first)
@@ -111,3 +137,42 @@ async def test_regenerating_replaces_new_but_keeps_reviewed(seeded_session: Asyn
     assert accepted.status is RecommendationStatus.ACCEPTED
     assert len(second) == len(first)
     assert first[1].id not in {r.id for r in second}
+
+
+async def test_every_recommendation_has_arabic_wording(seeded_session: AsyncSession) -> None:
+    template = await RecommendationService(seeded_session).generate(llm=None)
+    llm = await RecommendationService(seeded_session).generate(FakeLLMClient(_word_every_finding))
+
+    for rec in [*template, *llm]:
+        assert rec.title_ar and ARABIC_LETTER.search(rec.title_ar)
+        assert rec.suggestion_ar and ARABIC_LETTER.search(rec.suggestion_ar)
+    assert llm[0].title_ar == "عنوان 0"
+
+
+async def test_arabic_templates_keep_the_evidence_numbers(seeded_session: AsyncSession) -> None:
+    recs = await RecommendationService(seeded_session).generate(llm=None)
+
+    for rec in recs:
+        assert rec.suggestion_ar is not None
+        assert f"{rec.evidence.lift:.2f}" in rec.suggestion_ar
+        assert f"{rec.evidence.sample_size:,}" in rec.suggestion_ar
+
+
+async def test_reviewed_recommendations_without_arabic_are_backfilled(
+    seeded_session: AsyncSession,
+) -> None:
+    service = RecommendationService(seeded_session)
+    first = await service.generate(llm=None)
+    await service.update_status(
+        first[0].id, RecommendationStatusUpdate(status=RecommendationStatus.ACCEPTED)
+    )
+    row = await service.repository.get_or_raise(first[0].id)
+    row.title_ar = None
+    row.suggestion_ar = None
+    await seeded_session.flush()
+
+    await service.generate(llm=None)
+    backfilled = await service.get_recommendation(first[0].id)
+
+    assert backfilled.title_ar and ARABIC_LETTER.search(backfilled.title_ar)
+    assert backfilled.title == first[0].title  # English wording untouched

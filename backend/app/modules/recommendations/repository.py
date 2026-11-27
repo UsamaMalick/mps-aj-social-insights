@@ -32,3 +32,9 @@ class RecommendationRepository(BaseRepository[Recommendation]):
 
     async def delete_with_status(self, status: RecommendationStatus) -> None:
         await self.session.execute(delete(Recommendation).where(Recommendation.status == status))
+
+    async def list_missing_arabic(self) -> Sequence[Recommendation]:
+        rows = await self.session.scalars(
+            select(Recommendation).where(Recommendation.title_ar.is_(None))
+        )
+        return rows.all()

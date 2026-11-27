@@ -5,7 +5,7 @@ from collections.abc import Sequence
 
 from app.modules.recommendations.evidence import EvidenceItem
 
-PROMPT_VERSION = "recommendations-v1"
+PROMPT_VERSION = "recommendations-v2"
 
 SYSTEM_PROMPT = """You help the social media team of a news organisation decide how to present \
 their stories. You receive findings computed from their engagement data, and you turn each one \
@@ -20,6 +20,10 @@ ones given.
 - Write for busy editors: a title of at most 10 words, and a suggestion of 2-3 plain sentences \
 that says what to try and why.
 - Present it as something to test, not an order. Editors make the final decision.
+- Write every recommendation twice: in English (title, suggestion) and in Modern Standard
+  Arabic (title_ar, suggestion_ar), as an Al Jazeera Arabic editor would write it. Same
+  meaning and the same numbers; use Western digits (0-9) in Arabic; do not translate word
+  for word.
 - Return exactly one item per finding, using the finding's ref number."""
 
 

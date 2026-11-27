@@ -20,6 +20,9 @@ class Recommendation(UUIDPrimaryKey, Timestamps, Base):
 
     title: Mapped[str] = mapped_column(String(TITLE_MAX_LENGTH))
     suggestion: Mapped[str] = mapped_column(Text)
+    # Arabic wording of the same recommendation (nullable only for rows created before it).
+    title_ar: Mapped[str | None] = mapped_column(String(TITLE_MAX_LENGTH))
+    suggestion_ar: Mapped[str | None] = mapped_column(Text)
     category: Mapped[RecommendationCategory] = mapped_column(str_enum(RecommendationCategory))
     evidence: Mapped[dict[str, Any]] = mapped_column(JSONB)
     status: Mapped[RecommendationStatus] = mapped_column(

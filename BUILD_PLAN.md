@@ -61,10 +61,11 @@ Mark a phase done by changing `[ ]` to `[x]` and adding one line of notes under 
 > Done: 14 endpoints with stable operation ids + documented error shape; posts filter/search/sort (in-memory engagement sort, fine at POC scale); `make gen-api` regenerates schema.d.ts.
 - Paginated, filterable endpoints for accounts, posts (with latest snapshot and tags),
   analytics, recommendations
-- `make gen-api` generates `frontend/src/lib/api/schema.d.ts`
+- `make gen-api` generates `frontend/src/lib/api/schema.ts`
 - **Done when:** OpenAPI is complete and frontend type generation works.
 
-## [ ] Phase 7 — Frontend dashboard
+## [x] Phase 7 — Frontend dashboard
+> Done: Overview/Posts/Competitors with URL filters, RTL captions, Suspense skeletons + empty/error states; generated types moved to `schema.ts` (`--enum-values` gives runtime enum arrays).
 - Overview: key stats, own vs competitors chart, top posts
 - Posts: filterable table (URL search params), caption with `dir="auto"`
 - Competitors: per-competitor comparison using public metrics only

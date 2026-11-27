@@ -79,3 +79,8 @@ export function formatLabel(value: string | null | undefined): string {
 export function formatHour(hour: number): string {
   return `${String(hour).padStart(2, "0")}:00 UTC`;
 }
+
+/** "Al Jazeera", "instagram" → "Al Jazeera · Instagram" */
+export function formatAccountName(displayName: string, platform: string): string {
+  return `${displayName} · ${formatLabel(platform)}`;
+}

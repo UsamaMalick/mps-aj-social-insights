@@ -1409,3 +1409,27 @@ export interface operations {
         };
     };
 }
+type FlattenedDeepRequired<T> = {
+    [K in keyof T]-?: FlattenedDeepRequired<T[K] extends unknown[] | undefined | null ? Extract<T[K], unknown[]>[number] : T[K]>;
+};
+type ReadonlyArray<T> = [
+    Exclude<T, undefined>
+] extends [
+    unknown[]
+] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
+export const analyticsScopeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AnalyticsScope"]> = ["all", "own", "competitors"];
+export const dataSourceKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DataSourceKind"]> = ["seed", "meta"];
+export const hookStyleValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["HookStyle"]> = ["question", "statistic", "quote", "bold_claim", "straight_news"];
+export const languageValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Language"]> = ["ar", "en"];
+export const mediaTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MediaType"]> = ["image", "video", "reel", "carousel"];
+export const patternDimensionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PatternDimension"]> = ["media_type", "story_type", "hook_style", "topic", "language", "time_block"];
+export const platformValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Platform"]> = ["instagram", "facebook"];
+export const postSortValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PostSort"]> = ["newest", "oldest", "most_engaged"];
+export const recommendationCategoryValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RecommendationCategory"]> = ["format", "style", "hook", "timing", "language"];
+export const recommendationSourceValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RecommendationSource"]> = ["llm", "template"];
+export const recommendationStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RecommendationStatus"]> = ["new", "accepted", "dismissed"];
+export const regionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Region"]> = ["middle_east", "africa", "europe", "asia", "americas", "global"];
+export const snapshotAgeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SnapshotAge"]> = [24, 72];
+export const storyTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["StoryType"]> = ["breaking", "explainer", "human_interest", "analysis", "live_update"];
+export const toneValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Tone"]> = ["neutral", "urgent", "emotional", "informative"];
+export const topicValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Topic"]> = ["politics", "conflict", "economy", "climate", "health", "technology", "sports", "culture"];

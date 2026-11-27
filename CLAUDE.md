@@ -142,7 +142,7 @@ Run everything through `make` so commands stay the same for everyone (and for Cl
 | Engagement score, lift formulas    | `backend/app/modules/analytics/metrics.py`       |
 | Enums (Platform, MediaType, …)     | `backend/app/shared/enums.py` (flow to TS via OpenAPI) |
 | Config / env vars                  | `backend/app/core/config.py`, `frontend/src/lib/env.ts` |
-| API request/response types         | Backend Pydantic schemas → `frontend/src/lib/api/schema.d.ts` (generated) |
+| API request/response types         | Backend Pydantic schemas → `frontend/src/lib/api/schema.ts` (generated) |
 | LLM prompts                        | `prompts.py` inside the module that uses them    |
 | Seed "answer key" (planted patterns) | `backend/app/seed/answer_key.py`               |
 | Number/date formatting in UI       | `frontend/src/lib/format.ts`                     |

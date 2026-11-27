@@ -25,3 +25,19 @@ class PostTagCreate(TagLabels):
 
 class PostTagRead(PostTagCreate):
     id: UUID
+
+
+class TaggedCaption(TagLabels):
+    """One item of the LLM's tagging output; `ref` points back to a caption in the prompt."""
+
+    ref: int
+
+
+class TaggingOutput(BaseSchema):
+    items: list[TaggedCaption]
+
+
+class TaggingResult(BaseSchema):
+    source: TagSource
+    tagged: int
+    skipped: int

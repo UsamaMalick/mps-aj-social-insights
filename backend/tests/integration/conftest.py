@@ -18,7 +18,7 @@ from sqlalchemy.pool import NullPool
 from alembic import command
 from app.core.config import get_settings
 from app.core.database import get_session
-from tests.seed_helpers import seed_and_tag_with_ground_truth
+from tests.seed_helpers import seed_and_tag_with_rules
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 
@@ -63,7 +63,7 @@ async def seeded_session(db_engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
             bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
         )
         try:
-            await seed_and_tag_with_ground_truth(session)
+            await seed_and_tag_with_rules(session)
             yield session
         finally:
             await session.close()

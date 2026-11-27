@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     data_source: DataSourceKind = DataSourceKind.SEED
 
     anthropic_api_key: SecretStr | None = None
-    llm_model: str = "claude-sonnet-5"
+    llm_model: str = "claude-opus-5"
     llm_max_tokens: int = 2048
 
     @property

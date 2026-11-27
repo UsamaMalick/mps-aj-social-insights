@@ -9,11 +9,13 @@ import typer
 from app.core.config import get_settings
 from app.core.database import get_engine, get_sessionmaker
 from app.core.logging import configure_logging
+from app.integrations.llm.factory import get_llm_client
 from app.main import create_app
 from app.modules.analytics.service import AnalyticsService
 from app.modules.ingestion.service import IngestionService
 from app.modules.ingestion.sources.factory import get_data_source
 from app.modules.ingestion.sources.seed import SeedDataSource
+from app.modules.tagging.service import TaggingService
 from app.shared.enums import DEFAULT_SNAPSHOT_AGE, AnalyticsScope
 
 cli = typer.Typer(no_args_is_help=True, help="AJ Social Insights batch jobs")
@@ -55,6 +57,27 @@ def ingest() -> None:
     """Pull data from the configured DATA_SOURCE."""
     configure_logging(get_settings().log_level)
     asyncio.run(_ingest(use_seed=False))
+
+
+async def _tag(limit: int | None) -> None:
+    llm = get_llm_client(get_settings())
+    if llm is None:
+        typer.echo("ANTHROPIC_API_KEY is not set: using rule-based tags from the seed metadata.")
+    try:
+        async with get_sessionmaker()() as session:
+            result = await TaggingService(session).tag_untagged(llm, limit)
+    finally:
+        await get_engine().dispose()
+    typer.echo(f"Tagged {result.tagged} posts via {result.source}; skipped {result.skipped}.")
+
+
+@cli.command()
+def tag(
+    limit: int | None = typer.Option(None, help="Tag at most this many posts (cost control)."),
+) -> None:
+    """Tag untagged posts with the LLM (or seed rules when no API key is set)."""
+    configure_logging(get_settings().log_level)
+    asyncio.run(_tag(limit))
 
 
 async def _analyze() -> None:

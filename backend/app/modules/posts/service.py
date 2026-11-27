@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.posts.repository import MetricSnapshotRepository, PostRepository
-from app.modules.posts.schemas import MetricSnapshotCreate, PostCreate, PostMetricsRow
+from app.modules.posts.schemas import MetricSnapshotCreate, PostCreate, PostMetricsRow, PostRead
 from app.shared.enums import SnapshotAge
 
 # Keeps each multi-row INSERT well under PostgreSQL's 32,767 bind-parameter limit.
@@ -30,6 +30,15 @@ class PostService:
         for batch in batched(snapshots, UPSERT_BATCH_SIZE, strict=False):
             count += await self.snapshots.upsert_many(batch)
         return count
+
+    async def list_ids(self) -> list[UUID]:
+        """Every post id, oldest post first."""
+        return list(await self.posts.list_ids())
+
+    async def get_posts(self, ids: Sequence[UUID]) -> list[PostRead]:
+        """The given posts, in the order of `ids` (unknown ids are dropped)."""
+        by_id = {post.id: post for post in await self.posts.get_many(ids)}
+        return [PostRead.model_validate(by_id[pid]) for pid in ids if pid in by_id]
 
     async def list_metrics(self, age: SnapshotAge) -> list[PostMetricsRow]:
         """Every post with its metrics at the given snapshot age."""

@@ -49,7 +49,8 @@ Mark a phase done by changing `[ ]` to `[x]` and adding one line of notes under 
 - `tests/integration/test_answer_key.py`: analytics finds every planted pattern
 - **Done when:** the answer-key test passes.
 
-## [ ] Phase 5 — AI tagging
+## [x] Phase 5 — AI tagging
+> Done: LLMClient Protocol + AnthropicLLMClient (claude-opus-5, structured output, server-side fallback), validate-retry-once-skip; no key → seed-rule tags (all 4,049 posts tagged).
 - `LLMClient` Protocol, `AnthropicLLMClient`, `FakeLLMClient`
 - `tagging/prompts.py` with `PROMPT_VERSION`, Pydantic-validated output, `make tag`
 - If `ANTHROPIC_API_KEY` is not set, `make tag` falls back to rule-based tags derived

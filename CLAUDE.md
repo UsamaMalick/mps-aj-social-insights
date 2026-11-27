@@ -93,7 +93,6 @@ Key decisions:
 ├── .env.example              # every env var, documented
 ├── .editorconfig
 ├── .pre-commit-config.yaml   # ruff, prettier, eslint, trailing whitespace
-├── .github/workflows/ci.yml  # lint, typecheck, test for both apps
 ├── docs/
 │   ├── architecture.md       # longer-form decisions (ADR-style)
 │   └── poc-overview.pdf

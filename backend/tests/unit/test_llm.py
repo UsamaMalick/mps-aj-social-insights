@@ -3,6 +3,7 @@ import json
 from pydantic import BaseModel
 
 from app.integrations.llm.base import LLMOutputError, generate_structured, strict_json_schema
+from app.modules.recommendations.schemas import RecommendationDrafts
 from app.modules.tagging.prompts import build_prompt
 from app.modules.tagging.schemas import TaggingOutput
 from tests.fakes import FakeLLMClient
@@ -20,6 +21,15 @@ def test_strict_schema_inlines_enums_and_closes_objects() -> None:
     assert item["additionalProperties"] is False
     assert set(item["required"]) == {"ref", "topic", "region", "story_type", "hook_style", "tone"}
     assert "explainer" in item["properties"]["story_type"]["enum"]
+
+
+def test_strict_schema_keeps_a_field_named_title() -> None:
+    schema = strict_json_schema(RecommendationDrafts)
+
+    item = schema["properties"]["items"]["items"]
+    assert "title" in item["properties"]
+    assert "title" in item["required"]
+    assert "title" not in schema
 
 
 async def test_invalid_output_is_retried_once() -> None:

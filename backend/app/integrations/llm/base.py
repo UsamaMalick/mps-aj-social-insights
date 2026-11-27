@@ -43,7 +43,12 @@ def strict_json_schema(model: type[BaseModel]) -> dict[str, Any]:
             return node
         if "$ref" in node:
             return resolve(deepcopy(definitions[node["$ref"].rsplit("/", 1)[-1]]))
-        resolved = {key: resolve(value) for key, value in node.items() if key != "title"}
+        # Drop Pydantic's "title" annotations (strings), but keep a *field* named "title".
+        resolved = {
+            key: resolve(value)
+            for key, value in node.items()
+            if not (key == "title" and isinstance(value, str))
+        }
         if resolved.get("type") == "object" and "properties" in resolved:
             resolved["additionalProperties"] = False
             resolved["required"] = list(resolved["properties"])

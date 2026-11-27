@@ -8,13 +8,13 @@ describe("format", () => {
   });
 
   it("formats ratios as percentages", () => {
-    expect(formatPercent(0.034)).toBe("3.4%");
     expect(formatPercent(0.2204)).toBe("22%");
   });
 
-  it("keeps two decimals for small engagement rates", () => {
+  it("keeps two decimals for engagement-sized rates so they line up", () => {
     expect(formatPercent(0.005)).toBe("0.50%");
-    expect(formatPercent(0.0052)).toBe("0.52%");
+    expect(formatPercent(0.0101)).toBe("1.01%");
+    expect(formatPercent(0.06)).toBe("6.00%");
   });
 
   it("formats lift with a multiplication sign", () => {

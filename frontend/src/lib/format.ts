@@ -6,9 +6,9 @@ const compactFormatter = new Intl.NumberFormat(NUMBER_LOCALE, {
   maximumFractionDigits: 1,
 });
 const integerFormatter = new Intl.NumberFormat(NUMBER_LOCALE, { maximumFractionDigits: 0 });
-// Engagement rates are small (0.52%), so they need two decimals; larger shares read better
-// with at most one (22%, 3.4%).
-const SMALL_PERCENT = 0.01;
+// Engagement rates (typically 0.3%–8%) always get two decimals so they line up and compare
+// at a glance (0.86%, 1.01%, 6.00%); larger shares read better with at most one (22%).
+const TWO_DECIMALS_BELOW = 0.1;
 const smallPercentFormatter = new Intl.NumberFormat(NUMBER_LOCALE, {
   style: "percent",
   minimumFractionDigits: 2,
@@ -47,10 +47,10 @@ export function formatInteger(value: Numeric): string {
   return isMissing(value) ? EMPTY : integerFormatter.format(value);
 }
 
-/** A ratio → "0.52%" below 1%, otherwise at most one decimal ("3.4%", "22%"). */
+/** A ratio → two decimals below 10% ("0.52%", "1.01%"), else at most one ("22%"). */
 export function formatPercent(value: Numeric): string {
   if (isMissing(value)) return EMPTY;
-  return Math.abs(value) < SMALL_PERCENT
+  return Math.abs(value) < TWO_DECIMALS_BELOW
     ? smallPercentFormatter.format(value)
     : percentFormatter.format(value);
 }

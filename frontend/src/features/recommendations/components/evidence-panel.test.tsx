@@ -34,7 +34,7 @@ describe("EvidencePanel", () => {
   it("shows usage shares for content gaps", () => {
     render(<EvidencePanel evidence={EVIDENCE} segmentLabel="Explainers" />);
 
-    expect(screen.getByText(/3% of Al Jazeera posts vs 22% of competitors/)).toBeInTheDocument();
+    expect(screen.getByText(/3.00% of Al Jazeera posts vs 22% of competitors/)).toBeInTheDocument();
   });
 
   it("omits usage when the evidence is not a gap", () => {
